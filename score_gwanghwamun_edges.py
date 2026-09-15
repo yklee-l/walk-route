@@ -28,11 +28,16 @@ def highway_values(value: object) -> set[str]:
     return {str(value)} if value is not None else set()
 
 
-def vehicle_exposure_score(highways: set[str]) -> int:
+def vehicle_exposure_score(highways: set[str]) -> float:
     # Lower score wins where a multi-value highway tag appears.
-    scores = {"footway": 0, "path": 0, "residential": 1, "tertiary": 2, "secondary": 3, "primary": 4}
-    matched = [scores[value] for value in highways if value in scores]
-    return min(matched) if matched else 0
+    scores = {
+        "footway": 0, "path": 0, "pedestrian": 0,
+        "living_street": 0.5, "cycleway": 0.5,
+        "residential": 1, "track": 1,
+        "service": 1.5, "unclassified": 1.5,
+        "tertiary": 2, "secondary": 3, "primary": 4,
+    }
+    return min((scores.get(value, 2) for value in highways), default=2)
 
 
 def main() -> None:
