@@ -1,0 +1,4 @@
+﻿beta,distance_ratio_median,distance_ratio_p90,exposure_reduction_pct_median,budget_binding_pct,duplicate_pct,hits_budget_pct
+1.0,1.0,1.0,0.0,100.0,0.0,100.0
+1.15,1.1003991329131821,1.144225542191673,57.8475648363797,87.0,4.0,50.0
+1.3,1.1752337171304292,1.2792505498362803,72.68286359857609,75.0,38.0,23.0

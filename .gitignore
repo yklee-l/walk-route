@@ -5,3 +5,10 @@ venv/
 *.graphml
 *.gpkg
 cache/
+.env
+osmnx_outputs/photos/
+osmnx_outputs/profiles.json
+osmnx_outputs/reviews*.json
+osmnx_outputs/reviews.*.bak
+data/
+osmnx_outputs/reviews.jsonl*

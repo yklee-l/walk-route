@@ -4,6 +4,9 @@ import ast
 import math
 from pathlib import Path
 
+import geopandas as gpd
+import networkx as nx
+import numpy as np
 import osmnx as ox
 import pandas as pd
 
@@ -13,6 +16,14 @@ OUTPUT = Path("osmnx_outputs/gwanghwamun_walk_2km_scored.graphml")
 CENTER = (37.5720, 126.9769)
 DIST_METERS = 2_000
 TREE_RADIUS_M = 20
+
+# Interim "vibe" axis: density of walk-friendly POIs along the edge plus living_street.
+# Swap compute_vibe_scores() for a street-view model later; keep the [0, 1] contract.
+VIBE_POI_TAGS = {"amenity": ["cafe"], "shop": ["bakery", "florist", "books"], "tourism": ["gallery"]}
+VIBE_RADIUS_M = 40
+VIBE_POI_PER_100M_CAP = 10.0  # one POI every 10 m saturates; among edges with any POI the median density is ~5/100 m
+VIBE_POI_WEIGHT = 0.7
+VIBE_LIVING_STREET_WEIGHT = 0.3
 
 
 def highway_values(value: object) -> set[str]:
@@ -38,6 +49,35 @@ def vehicle_exposure_score(highways: set[str]) -> float:
         "tertiary": 2, "secondary": 3, "primary": 4,
     }
     return min((scores.get(value, 2) for value in highways), default=2)
+
+
+def vibe_score(poi_count: int, length_m: float, highways: set[str]) -> float:
+    """0..1, higher is nicer: capped POI density (per 100 m) blended with a living_street bonus."""
+    if length_m <= 0:
+        return 0.0
+    poi_term = min(poi_count / length_m * 100 / VIBE_POI_PER_100M_CAP, 1.0)
+    living = 1.0 if "living_street" in highways else 0.0
+    return VIBE_POI_WEIGHT * poi_term + VIBE_LIVING_STREET_WEIGHT * living
+
+
+def fetch_vibe_pois(crs: object) -> gpd.GeoDataFrame:
+    bbox = ox.utils_geo.bbox_from_point(CENTER, dist=DIST_METERS, project_utm=False)
+    pois = ox.features_from_bbox(bbox, tags=VIBE_POI_TAGS).to_crs(crs)
+    pois["geometry"] = pois.geometry.representative_point()
+    return pois
+
+
+def compute_vibe_scores(graph_projected: nx.MultiDiGraph, pois: gpd.GeoDataFrame | None = None) -> dict[tuple[object, object, object], dict[str, float | int]]:
+    """Per-edge {vibe_poi_count, vibe_score} on a projected (metric) graph."""
+    if pois is None:
+        pois = fetch_vibe_pois(graph_projected.graph["crs"])
+    edges = ox.graph_to_gdfs(graph_projected, nodes=False, fill_edge_geometry=True)
+    edge_positions, _ = pois.sindex.query(edges.geometry.buffer(VIBE_RADIUS_M), predicate="intersects")
+    counts = np.bincount(edge_positions, minlength=len(edges))
+    return {
+        index: {"vibe_poi_count": int(count), "vibe_score": vibe_score(int(count), float(edge["length"]), highway_values(edge.get("highway")))}
+        for index, count, (_, edge) in zip(edges.index, counts, edges.iterrows())
+    }
 
 
 def main() -> None:
@@ -87,6 +127,8 @@ def main() -> None:
         if position % 5_000 == 0:
             print(f"Scored {position:,}/{len(edges):,} edges", flush=True)
 
+    for (u, v, key), values in compute_vibe_scores(graph).items():
+        attrs[(u, v, key)].update(values)
     for (u, v, key), values in attrs.items():
         graph[u][v][key].update(values)
     scored_wgs84 = ox.project_graph(graph, to_crs=graph_wgs84.graph["crs"])
