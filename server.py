@@ -1433,6 +1433,9 @@ class RouteHandler(SimpleHTTPRequestHandler):
         elif url.path == "/admin":
             self.path = "/admin.html"
             super().do_GET()
+        elif url.path.startswith("/web/"):
+            self.path = self.path[len("/web"):]  # /web/logo.png 처럼 폴더명을 포함해 요청해도 서빙 (루트가 web/)
+            super().do_GET()
         else:
             if url.path in ("/", "/index.html"):
                 with self.lock:

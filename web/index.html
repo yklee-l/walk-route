@@ -327,7 +327,7 @@
   #intro .track.drag { transition: none; }
   #intro .slide { flex: 0 0 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 28px 130px; box-sizing: border-box; background: var(--sbg, var(--panel)); }
   #intro .slide .emo { font-size: 84px; line-height: 1; margin-bottom: 28px; filter: drop-shadow(0 6px 14px rgba(0,0,0,.12)); animation: introPop .6s cubic-bezier(.2,.8,.2,1) both; }
-  #intro .slide img.emo { width: 150px; height: auto; }
+  #intro .slide img.emo { width: 200px; height: auto; }  /* 가로형 로고: 기존 세로형(150px)과 비슷한 크기감 */
   #intro .slide h2 { font-size: 24px; font-weight: 800; margin: 0 0 12px; line-height: 1.3; letter-spacing: -.01em; max-width: 420px; word-break: keep-all; white-space: pre-line; }
   #intro .slide p { margin: 0; font-size: 15.5px; line-height: 1.6; color: #3f3f46; max-width: 380px; white-space: pre-line; word-break: keep-all; }
   #intro .bubble { margin-top: 22px; display: inline-block; background: #fff; border-radius: 18px 18px 18px 4px; padding: 12px 16px; font-size: 14.5px; box-shadow: 0 4px 14px rgba(0,0,0,.08); position: relative; max-width: 320px; }
@@ -351,7 +351,7 @@
   #intro .aipill { position: relative; }
   #intro .aipill::after { content: ""; position: absolute; inset: -4px; border-radius: 999px; border: 4px solid #c4b5fd; animation: introPulse 1.6s ease-in-out infinite; pointer-events: none; }
   @keyframes introPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: .35; } }
-  @media (min-width: 761px) { #intro .slide h2 { font-size: 30px; } #intro .slide p { font-size: 17px; } #intro .slide .emo { font-size: 104px; } #intro .slide img.emo { width: 190px; } }
+  @media (min-width: 761px) { #intro .slide h2 { font-size: 30px; } #intro .slide p { font-size: 17px; } #intro .slide .emo { font-size: 104px; } #intro .slide img.emo { width: 240px; } }
 
   /* intro slide UI previews: mockups standing in for the emoji icon.
      NOTE: real taps can't drive these — #introtrack captures the pointer for swipe (setPointerCapture in the
@@ -873,7 +873,7 @@
 <div id="intro" aria-label="앱 소개">
   <button type="button" class="skip" id="introskip">건너뛰기</button>
   <div class="track" id="introtrack">
-    <section class="slide" style="--sbg:#e8f1ff"><img class="emo" src="img/logo.png" alt="에움길 로고"><h2>'에움길'에 오신 것을 환영해요</h2><p>‘에움길’은 우회로를 뜻하는 순우리말로, 조금 돌아가더라도 사용자의 취향을 반영한 최적의 도보 경로를 추천해요</p></section>
+    <section class="slide" style="--sbg:#e8f1ff"><img class="emo" src="logo.png" alt="에움길 로고"><h2>'에움길'에 오신 것을 환영해요</h2><p>‘에움길’은 우회로를 뜻하는 순우리말로, 조금 돌아가더라도 사용자의 취향을 반영한 최적의 도보 경로를 추천해요</p></section>
     <section class="slide" style="--sbg:#fff1e6"><h2>두 가지 방법으로 취향을 알려주세요</h2><p>선택지를 고르거나, 원하는 분위기를 직접 입력할 수 있어요</p>
       <div class="mockchoices">
         <div class="mockchoice mc-a"><span class="e">🎯</span>버튼으로 고르기</div>
