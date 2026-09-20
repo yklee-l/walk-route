@@ -1,4 +1,59 @@
 <!DOCTYPE html>
+<!--
+=== 디자인 수정 가이드 ===
+수정 가능: CSS 스타일 (색상, 폰트, 여백, 카드 디자인)
+수정 금지: JavaScript 함수, API 호출, 이벤트 핸들러
+===========================
+(마지막 갱신: 2026-09-20)
+
+이 파일은 한 개의 HTML 안에 [CSS(style 블록)] → [HTML 마크업] → [JavaScript(script 블록)] 순서로 들어 있습니다.
+디자인 작업은 style 블록 안에서만 하시면 됩니다. script 블록(파일 뒷부분) 아래는 손대지 마세요.
+파일 안에 "디자인 수정 가능 영역" 시작/끝 주석이 있으니 그 사이만 보시면 됩니다.
+
+■ 수정해도 되는 것 (CSS)
+  - :root 변수: --bg --panel --text --muted --faint --border --track --accent --accent-ink --good --bad
+    --origin --dest --radius --shadow --sheet-w --half-h  → 색상·둥글기·그림자는 여기만 바꿔도 전체에 적용됩니다.
+  - 폰트(font-family / size / weight), 여백(margin / padding), 배경, 테두리, 그림자, 전환(transition), 애니메이션.
+  - 카드(.card 경로카드 / .rkcard 랭킹 / .rc 리뷰 / .segcard 길검색), 시트(#sheet), 상단 바(#topbar),
+    버튼, 리뷰 폼(.rv)과 그 컨테이너(#rvfloat 데스크톱 떠있는 패널 / #rvform 폰 전체화면),
+    온보딩(#onboard, .ob), 소개 슬라이드(#intro), 랭킹(#ranking), 길 검색(#segsearch),
+    리뷰 목록(#rvpage, #myrv), 사이드 메뉴(#sidemenu), 계정 메뉴(#acctmenu), 토스트(#toast)의 '모양'.
+  - 마커 모양: .marker-pin .wp-pin .danger-pin .poi-pin .me-dot (크기를 바꾸면 아래 '주의' 참고).
+
+■ 수정하면 안 되는 것
+  - script 블록 전체 (모든 function / const / addEventListener / fetch·api() 호출).
+  - HTML의 id="…" 값과 class 이름. JS가 이 이름으로 요소를 찾고(document.getElementById) 상태를 켜고 끕니다.
+    특히 JS가 토글하는 상태 클래스: .show .on .open .peek .half .collapsed .expanded .armed .ready .active
+    .selected .focused .dimmed .hot .busy .loading .warn .off .manual .drag .dragging .over .sel .hover
+    .back .blink, body.detail
+    → 이 클래스들의 '스타일'은 바꿔도 되지만 이름을 바꾸거나 선택자에서 지우면 기능이 멈춥니다.
+  - hidden 속성으로 숨기는 요소(#wpmode #wpfoot #wpmodehint #gps #routes .photoai 등)에 display: flex/block 을
+    새로 주지 마세요. 주면 hidden이 무시되어 항상 보입니다. 필요하면 #id[hidden] { display: none } 을 함께 두세요.
+  - HTML 구조(요소 추가·삭제·순서 변경·태그 종류 변경). 문구 수정은 JS에도 같은 문구가 있는 경우가 많으니
+    개발자에게 요청해 주세요.
+
+■ 주의해야 할 부분
+  - 반응형 기준 760px: CSS의 @media (min-width: 761px) / (max-width: 760px)와 JS의 isPhone()(innerWidth <= 760)이
+    짝을 이룹니다. 햄버거 메뉴(#menubtn)만 768px 기준입니다. 브레이크포인트를 옮기려면 개발자와 함께 바꿔야 합니다.
+  - --sheet-w(420px)는 JS의 지도 패딩(460)과, --half-h(42vh, 폰에서 결과를 볼 때의 시트 높이)는 JS의 지도 하단
+    여백 계산과 연동됩니다. 크게 바꾸면 경로가 시트 뒤에 가려질 수 있습니다.
+  - #sheet는 transform만 애니메이션하세요(높이에 transition을 주면 폰에서 끊깁니다). 그랩 바 스와이프 중에는
+    JS가 --drag 변수만 바꿉니다.
+  - 오버레이 z-index 순서를 유지하세요: #lightbox(4000) > #intro(3100) > #lock(3000) > #aimodal(2500) >
+    #sidemenu(1600) > #rvform(1550) > #onboard(1500) > #ranking·#segsearch(1450) > #toast(1300) >
+    #rvfloat(1250) > #dtop(1200) > #dpanel(1100) > #sheet(950) > #topbar(900) > 지도.
+  - 경로 선 색상(#4A90D9 #50C878 #FF8C69)·굵기, 점수 색(scoreColor), 신고/위험 점선, 길 검색 보라색 선,
+    사진 축소 크기는 CSS가 아니라 JS 상수(COLORS, LINE, REPORT_STYLE, DANGER_STYLE 등)입니다.
+    바꾸고 싶으면 값만 알려 주세요.
+  - 폰에서는 성능 때문에 backdrop-filter(블러)와 큰 그림자를 꺼 두었습니다(@media (max-width: 760px) 블록).
+    다시 켜면 지도 위에서 느려집니다. prefers-reduced-motion 블록도 그대로 두세요.
+  - Leaflet 기본 클래스(.leaflet-*)는 지도 라이브러리 것입니다. 팝업/줌 버튼 위치 정도만 조정하세요.
+  - 마커(.marker-pin 등) 크기를 바꾸면 JS의 iconSize / iconAnchor(핀 끝 좌표)와 어긋나 위치가 틀어집니다.
+  - 이모지는 텍스트라 폰트/OS에 따라 달라 보입니다. 아이콘을 통일하려면 SVG 교체는 개발자와 상의하세요.
+  - 저장 후 브라우저에서 Ctrl+F5(강력 새로고침)로 확인하세요. 서버 재시작은 필요 없습니다.
+  - style 블록 안에는 (주석이라도) '</​style>' 글자를 쓰지 마세요. 브라우저가 거기서 스타일을 끝내 버려
+    CSS가 화면에 텍스트로 나옵니다.
+-->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -6,12 +61,14 @@
 <title>Walk Route — 광화문</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
+  /* ============ 디자인 수정 가능 영역 (여기부터 style 블록 끝까지) ============ */
   :root {
     --bg: #ffffff; --panel: #fafafa; --text: #18181b; --muted: #71717a; --faint: #a1a1aa;
     --border: #e4e4e7; --track: #ececef; --accent: #2563eb; --accent-ink: #ffffff;
     --good: #15803d; --bad: #b91c1c; --origin: #16a34a; --dest: #dc2626;
     --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.10);
     --sheet-w: 420px;
+    --half-h: 42vh;  /* phone results view: sheet height with the map still visible above (see #sheet.half) */
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -33,9 +90,6 @@
   #ask.off .field { display: none; }
   #ask .offnote { display: none; flex: 1; height: 46px; align-items: center; padding: 0 14px; border-radius: 12px; background: var(--bg); box-shadow: var(--shadow); color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #ask.off .offnote { display: flex; }
-  #aiunlock { flex: 0 0 auto; height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); box-shadow: var(--shadow); font: inherit; font-size: 12px; font-weight: 600; color: #5b21b6; cursor: pointer; white-space: nowrap; }
-  #aiunlock:hover { border-color: #7c3aed; }
-  #aiunlock:disabled { color: var(--faint); cursor: not-allowed; }
   #aimodal { position: fixed; inset: 0; z-index: 2500; background: rgba(24,24,27,.35); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 24px; }
   #aimodal.show { display: flex; }
   #aimodal form { width: 100%; max-width: 340px; background: var(--bg); border-radius: 18px; box-shadow: var(--shadow); padding: 22px; text-align: center; animation: rise .3s cubic-bezier(.2,.8,.2,1) both; }
@@ -49,6 +103,12 @@
   #askhint.show { display: flex; }
   #askhint .chip { background: var(--bg); box-shadow: var(--shadow); border-radius: 999px; padding: 1px 8px; font-weight: 600; color: var(--accent); }
   #askhint .chip.err { color: var(--bad); }
+  #askhint .ask-bubble { flex-basis: 100%; display: flex; gap: 8px; align-items: flex-start; background: var(--bg); box-shadow: var(--shadow); border-radius: 4px 14px 14px 14px; padding: 9px 12px; font-size: 13px; line-height: 1.5; color: var(--text); white-space: pre-line; animation: rise .25s ease both; }
+  #askhint .ask-bubble .who { flex: none; font-size: 16px; }
+  #askhint .ask-bubble .body { flex: 1; min-width: 0; }
+  #askhint .ask-bubble .ways { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  #askhint .ask-bubble .ways button { border: 1px solid var(--border); background: var(--panel); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: none; color: var(--text); }
+  #askhint .ask-bubble .ways button:hover { border-color: var(--accent); color: var(--accent); }
   #askhint button { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; font-size: 11.5px; text-decoration: underline; padding: 0; }
   #searchbtn { grid-column: 1; }
   #prefwrap { grid-column: 2; grid-row: 1 / span 3; align-self: start; display: flex; gap: 8px; align-items: flex-start; }
@@ -101,15 +161,36 @@
 
   /* ---- bottom sheet ---- */
   #sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 950; max-height: 78vh; display: flex; flex-direction: column; background: var(--bg); border-radius: 18px 18px 0 0; box-shadow: 0 -6px 30px rgba(0,0,0,.14); transform: translateY(calc(100% - 0px)); transition: transform .38s cubic-bezier(.2,.8,.2,1); }
-  #sheet.peek { transform: translateY(calc(100% - 56px)); }
-  #sheet.open { transform: none; }
+  /* --drag: small live offset while the handle is being swiped (set from the JS block), 0 otherwise */
+  #sheet.peek { transform: translateY(calc(100% - 56px + var(--drag, 0px))); }
+  #sheet.open { transform: translateY(var(--drag, 0px)); }
+  /* half: the results view on phones - the sheet shrinks to --half-h so the map stays visible above the cards */
+  #sheet.half { transform: translateY(var(--drag, 0px)); max-height: var(--half-h); }
+  #sheet.dragging { transition: none; }
+  /* transform only: animating max-height forces layout every frame, which is what made the sheet stutter on phones */
+  #sheet { transition: transform .38s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+  #inputs.collapsed { display: none; }
+  .pick.armed { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #odsummary { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; padding: 8px 10px 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); font-size: 13px; }
+  #odsummary .od { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  #odsummary .od small { color: var(--muted); font-weight: 400; }
+  #odsummary .acts { display: flex; gap: 4px; flex: none; }
+  #odsummary .acts button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  #odsummary .acts button:hover { border-color: var(--accent); }
+  #toast { position: fixed; left: 50%; top: max(70px, calc(env(safe-area-inset-top) + 66px)); transform: translate(-50%, -8px); z-index: 1300; max-width: min(520px, calc(100vw - 32px)); background: rgba(24,24,27,.92); color: #fff; border-radius: 12px; padding: 10px 14px; font-size: 13px; line-height: 1.45; box-shadow: 0 8px 30px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  #toast b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+  #toast small { color: #d4d4d8; display: block; }
+  #toast button { margin-top: 6px; border: 1px solid rgba(255,255,255,.35); background: none; color: #fff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
   @media (min-width: 761px) { #sheet { left: 12px; right: auto; width: var(--sheet-w); bottom: 0; max-height: calc(100vh - 80px); border-radius: 18px 18px 0 0; } }
   .grab { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 56px; padding: 0 18px; cursor: pointer; user-select: none; }
-  .grab::before { content: ""; position: absolute; top: 8px; left: 50%; width: 40px; height: 4px; margin-left: -20px; border-radius: 999px; background: var(--border); }
+  .grab::before { content: ""; position: absolute; top: 8px; left: 50%; width: 64px; height: 6px; margin-left: -32px; border-radius: 999px; background: #c4c4c9; }
+  .grab { touch-action: none; }  /* the handle takes vertical swipes itself (see sheet drag in the JS block) */
+  @media (max-width: 760px) { .grab .x { display: none; } .grab::before { width: 72px; } }
   .grab .t { font-weight: 700; font-size: 14px; padding-top: 6px; }
   .grab .t small { color: var(--muted); font-weight: 400; margin-left: 6px; }
   .grab .x { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; font-size: 12.5px; padding-top: 6px; }
-  .body { overflow-y: auto; padding: 0 18px 20px; }
+  .body { overflow-y: auto; padding: 0 18px 20px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   section { padding: 10px 0; }
   section + section { border-top: 1px solid var(--border); }
   section h2 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin: 0 0 10px; }
@@ -132,6 +213,44 @@
   .pick:disabled { opacity: .5; cursor: not-allowed; }
   .pick.active { border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,.06); font-weight: 600; }
   .swap { display: flex; justify-content: flex-end; margin: 4px 0 0; }
+  /* waypoints */
+  #wpsec { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; }
+  #wpsec .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  #wpsec .head b { color: var(--text); }
+  #wpadd { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 12.5px; font-weight: 600; color: #7c3aed; cursor: pointer; }
+  #wpadd.on { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+  #wpadd:disabled { opacity: .5; cursor: not-allowed; }
+  #wpsearch { position: relative; display: none; margin-top: 8px; }
+  #wpsearch.show { display: block; }
+  #wpsearch input { width: 100%; padding: 9px 10px; border: 1px solid #c4b5fd; border-radius: 8px; font: inherit; background: #faf5ff; outline: none; }
+  #wpsearch input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.15); }
+  #wpsearch .results { left: 0; }
+  #wplist { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+  #wpmode { display: flex; gap: 0; margin-top: 8px; border: 1px solid var(--border); border-radius: 999px; padding: 2px; background: var(--panel); }
+  #wpmode button { flex: 1; border: 0; border-radius: 999px; padding: 6px 8px; background: none; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer; }
+  #wpmode button.on { background: var(--bg); color: #5b21b6; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  #wpmodehint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  #wpsearch .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  #wplist li { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 8px; align-items: center; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-size: 12.5px; }
+  #wplist.manual li { grid-template-columns: 16px 22px 1fr auto auto; cursor: grab; }
+  #wplist .grip { display: none; color: var(--faint); font-size: 14px; letter-spacing: -2px; user-select: none; }
+  #wplist.manual .grip { display: inline; }
+  #wplist:not(.manual) .mv { display: none; }
+  #wplist li.dragging { opacity: .4; }
+  #wplist li.over { border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124,58,237,.2); }
+  #wplist .n { width: 20px; height: 20px; border-radius: 50%; background: #7c3aed; color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  #wplist .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #wplist .name small { color: var(--muted); }
+  #wplist .mv button, #wplist .x { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; padding: 0 3px; }
+  #wplist .mv button:hover, #wplist .x:hover { color: var(--text); }
+  #wplist .x { font-size: 15px; }
+  #wpfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+  #wpfoot label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  #wpgo { border: 0; border-radius: 8px; background: #7c3aed; color: #fff; padding: 7px 12px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  #wpgo:disabled { opacity: .5; cursor: default; }
+  .wp-pin { width: 22px; height: 22px; border-radius: 50%; background: #7c3aed; color: #fff; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  .wp-pin.visit { background: #4c1d95; }
+  .card .wpnote { margin-top: 6px; font-size: 11.5px; color: #5b21b6; background: #f5f3ff; border-radius: 6px; padding: 4px 8px; }
   .swap button { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; padding: 2px 4px; }
   .results { position: absolute; top: 40px; left: 22px; right: 0; z-index: 1200; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
   .results:empty { display: none; }
@@ -200,7 +319,94 @@
   .next .hint { text-align: center; font-size: 11.5px; color: var(--muted); margin: 6px 0 0; }
 
   /* ---- lock screen, mode cards, AI screen, AI toggle ---- */
+  /* app intro: 6 swipeable slides on the first visit (and from the account menu) */
+  #intro { position: fixed; inset: 0; z-index: 3100; display: none; flex-direction: column; background: var(--bg); overflow: hidden; user-select: none; }
+  #intro.show { display: flex; }
+  #intro .skip { position: absolute; top: max(14px, env(safe-area-inset-top)); right: 16px; z-index: 2; border: 0; background: rgba(255,255,255,.7); border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; backdrop-filter: blur(4px); }
+  #intro .track { flex: 1; display: flex; width: 100%; height: 100%; transition: transform .45s cubic-bezier(.2,.8,.2,1); will-change: transform; touch-action: pan-y; }
+  #intro .track.drag { transition: none; }
+  #intro .slide { flex: 0 0 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 28px 130px; box-sizing: border-box; background: var(--sbg, var(--panel)); }
+  #intro .slide .emo { font-size: 84px; line-height: 1; margin-bottom: 28px; filter: drop-shadow(0 6px 14px rgba(0,0,0,.12)); animation: introPop .6s cubic-bezier(.2,.8,.2,1) both; }
+  #intro .slide img.emo { width: 150px; height: auto; }
+  #intro .slide h2 { font-size: 24px; font-weight: 800; margin: 0 0 12px; line-height: 1.3; letter-spacing: -.01em; max-width: 420px; word-break: keep-all; white-space: pre-line; }
+  #intro .slide p { margin: 0; font-size: 15.5px; line-height: 1.6; color: #3f3f46; max-width: 380px; white-space: pre-line; word-break: keep-all; }
+  #intro .bubble { margin-top: 22px; display: inline-block; background: #fff; border-radius: 18px 18px 18px 4px; padding: 12px 16px; font-size: 14.5px; box-shadow: 0 4px 14px rgba(0,0,0,.08); position: relative; max-width: 320px; }
+  #intro .bubble::before { content: "💬"; position: absolute; left: -8px; top: -12px; font-size: 18px; }
+  #intro .aipill { margin-top: 22px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.1); font-weight: 700; font-size: 14px; }
+  #intro .aipill small { font-weight: 400; color: var(--muted); }
+  #intro .duo { margin-top: 22px; display: flex; gap: 10px; }
+  #intro .duo span { background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+  #intro .routes { margin-top: 22px; display: flex; gap: 8px; }
+  #intro .routes span { padding: 8px 12px; border-radius: 999px; background: #fff; font-size: 13px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.08); border-left: 6px solid var(--c); }
+  #intro .stars { margin-top: 22px; font-size: 26px; letter-spacing: 4px; color: #f59e0b; }
+  #intro .foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 24px calc(22px + env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; gap: 12px; background: linear-gradient(to top, rgba(255,255,255,.9), rgba(255,255,255,0)); }
+  #intro .dots { display: flex; gap: 7px; }
+  #intro .dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(24,24,27,.2); transition: width .25s, background .25s; }
+  #intro .dots i.on { width: 22px; border-radius: 999px; background: var(--text); }
+  #intro .nav { display: flex; gap: 8px; }
+  #intro .nav button { border: 0; border-radius: 999px; padding: 11px 18px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; background: rgba(24,24,27,.08); color: var(--text); }
+  #intro .nav button.go { background: var(--text); color: #fff; padding: 11px 22px; }
+  #intro .nav button[hidden] { display: none; }
+  @keyframes introPop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  #intro .aipill { position: relative; }
+  #intro .aipill::after { content: ""; position: absolute; inset: -4px; border-radius: 999px; border: 4px solid #c4b5fd; animation: introPulse 1.6s ease-in-out infinite; pointer-events: none; }
+  @keyframes introPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: .35; } }
+  @media (min-width: 761px) { #intro .slide h2 { font-size: 30px; } #intro .slide p { font-size: 17px; } #intro .slide .emo { font-size: 104px; } #intro .slide img.emo { width: 190px; } }
+
+  /* intro slide UI previews: mockups standing in for the emoji icon.
+     NOTE: real taps can't drive these — #introtrack captures the pointer for swipe (setPointerCapture in the
+     JS block), which swallows clicks on anything inside a slide. So "tap to preview" is faked with a looping
+     CSS animation that auto-cycles the before/after state instead of a real checkbox/click. CSS-only, no JS touched. */
+  /* slide 2: two ways to set preferences */
+  .mockchoices { display: flex; gap: 10px; margin-top: 24px; }
+  .mockchoice { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.08); font-size: 13.5px; font-weight: 700; border: 2px solid transparent; }
+  .mockchoice .e { font-size: 18px; }
+  .mockchoice.mc-a { animation: mockPickA 5s ease-in-out infinite; }
+  .mockchoice.mc-b { animation: mockPickB 5s ease-in-out infinite; }
+  @keyframes mockPickA { 0%, 42% { border-color: var(--accent); transform: translateY(-2px); } 50%, 100% { border-color: transparent; transform: none; } }
+  @keyframes mockPickB { 0%, 42% { border-color: transparent; transform: none; } 50%, 100% { border-color: var(--accent); transform: translateY(-2px); } }
+  .mockpreview { margin-top: 16px; min-height: 34px; position: relative; width: 100%; max-width: 320px; }
+  .mockprev-chips, .mockprev-ai { position: absolute; left: 0; right: 0; top: 0; }
+  .mockprev-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; animation: mockFadeA 5s ease-in-out infinite; }
+  .mockprev-chips span { background: #fff; border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+  .mockprev-ai { background: #fff; border-radius: 18px 18px 18px 4px; padding: 10px 14px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.08); display: inline-block; margin: 0 auto; animation: mockFadeB 5s ease-in-out infinite; }
+  @keyframes mockFadeA { 0%, 42% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes mockFadeB { 0%, 42% { opacity: 0; } 50%, 100% { opacity: 1; } }
+  /* slide 3: three route cards */
+  .mockcards { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 300px; margin-top: 22px; }
+  .mockcard { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.08); border-left: 5px solid var(--c); font-size: 13px; text-align: left; }
+  .mockcard .mc-name { font-weight: 800; font-size: 13.5px; }
+  .mockcard .mc-len { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+  .mockcard .mc-tags { margin-left: auto; font-size: 11px; color: var(--muted); background: var(--track); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  /* slide 4: AI pill -> chat input preview (auto-cycles open/closed) */
+  .aipill.mockcycle { animation: mockAIPill 4.5s ease-in-out infinite; }
+  @keyframes mockAIPill { 0%, 55% { background: #fff; color: var(--text); } 65%, 100% { background: var(--accent); color: var(--accent-ink); } }
+  .mockaibox { display: flex; align-items: center; gap: 8px; margin-top: 14px; width: 100%; max-width: 280px; background: #fff; border-radius: 999px; padding: 8px 8px 8px 16px; box-shadow: 0 4px 14px rgba(0,0,0,.08); animation: mockAIBox 4.5s ease-in-out infinite; }
+  @keyframes mockAIBox { 0%, 55% { opacity: 0; transform: translateY(6px); } 65%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(6px); } }
+  .mockaibox .mai-input { flex: 1; font-size: 12px; color: var(--muted); text-align: left; }
+  .mockaibox .mai-send { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 6px 12px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+  /* slide 5: popular route + danger zone toggle (auto-cycles shown/hidden) */
+  .mockrank { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 14px; padding: 10px 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); font-size: 13px; font-weight: 700; margin-top: 22px; max-width: 280px; }
+  .mockrank .mr-medal { font-size: 16px; }
+  .mockrank .mr-like { margin-left: auto; color: #ef4444; font-weight: 700; font-size: 12px; }
+  .mockmap { position: relative; width: 100%; max-width: 200px; height: 64px; margin-top: 14px; border-radius: 14px; background: linear-gradient(135deg,#fef9ec,#fdf2d0); box-shadow: 0 4px 14px rgba(0,0,0,.08); overflow: hidden; }
+  .mockmap::before { content: ""; position: absolute; left: 12%; top: 50%; right: 12%; height: 4px; background: #e7d9ad; border-radius: 3px; transform: rotate(-6deg); }
+  .mockmap .mockpin { position: absolute; top: 46%; left: 66%; transform: translate(-50%,-50%); font-size: 20px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); animation: mockPin 4.5s ease-in-out infinite; }
+  @keyframes mockPin { 0%, 55% { opacity: 1; } 65%, 100% { opacity: 0; } }
+  .mocktoggle { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12.5px; font-weight: 600; }
+  .mocktoggle .mt-track { width: 34px; height: 20px; border-radius: 999px; background: var(--accent); position: relative; animation: mockToggleTrack 4.5s ease-in-out infinite; }
+  .mocktoggle .mt-dot { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); animation: mockToggleDot 4.5s ease-in-out infinite; }
+  @keyframes mockToggleTrack { 0%, 55% { background: var(--accent); } 65%, 100% { background: var(--track); } }
+  @keyframes mockToggleDot { 0%, 55% { transform: translateX(14px); } 65%, 100% { transform: translateX(0); } }
+  /* slide 6: review preview */
+  .mockreview { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
+  .mockreview-stars { font-size: 24px; letter-spacing: 3px; color: #f59e0b; }
+  .mockreview-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .mockreview-tags span { background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 11.5px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+  .mockreview-btn { margin-top: 2px; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 8px 20px; font-size: 12.5px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
   #lock { position: fixed; inset: 0; z-index: 3000; background: var(--bg); display: none; align-items: center; justify-content: center; padding: 24px; }
+  #lock .privacy { margin: 6px 0 12px; font-size: 12.5px; color: var(--muted); }
+  #lock .privacy small { display: block; font-size: 11.5px; margin-top: 2px; }
   #lock.show { display: flex; }
   #lock form { width: 100%; max-width: 360px; text-align: center; animation: rise .38s cubic-bezier(.2,.8,.2,1) both; }
   #lock h1 { font-size: 20px; margin: 12px 0 4px; }
@@ -221,19 +427,153 @@
   .aiwrap .result.show { display: block; }
   .aiwrap .result b { display: block; font-size: 14px; margin-bottom: 2px; }
   .aiwrap .result .err { color: var(--bad); }
-  #aitoggle { position: fixed; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 960; display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 8px; border: 0; border-radius: 999px; background: var(--bg); box-shadow: var(--shadow); font: inherit; font-size: 11.5px; font-weight: 600; color: var(--muted); cursor: pointer; }
-  #aitoggle i { width: 26px; height: 14px; border-radius: 999px; background: var(--track); position: relative; transition: background .2s; }
-  #aitoggle i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .2s; }
-  #aitoggle.on { color: #5b21b6; }
-  #aitoggle.on i { background: #7c3aed; }
-  #aitoggle.on i::after { transform: translateX(12px); }
-  #aitoggle:disabled { cursor: not-allowed; opacity: .6; }
-  @media (max-width: 760px) { #aitoggle { bottom: 64px; } .leaflet-bottom.leaflet-right { bottom: 100px; } }
+  @media (max-width: 760px) { .leaflet-bottom.leaflet-right { bottom: 100px; } }
   .card .why.loading { color: var(--muted); font-style: italic; }
   .card .why .aitag { display: inline-block; font-size: 10.5px; font-weight: 700; color: #5b21b6; background: #ede9fe; border-radius: 999px; padding: 0 6px; margin-right: 6px; vertical-align: 1px; }
 
   /* ---- route detail view (full screen: map top 60 %, panel bottom 40 %) ---- */
-  body.detail #topbar, body.detail #sheet, body.detail #aitoggle { display: none; }
+  body.detail #topbar, body.detail #sheet { display: none; }
+  /* stars, comment, purpose scores, danger, ranking */
+  .stars { display: inline-flex; gap: 2px; }
+  .stars button { border: 0; background: none; font-size: 20px; line-height: 1; color: #d4d4d8; cursor: pointer; padding: 0 1px; transition: transform .1s, color .1s; }
+  .stars button.on, .stars button.hover { color: #f59e0b; }
+  .stars button:hover { transform: scale(1.15); }
+  .stars button:disabled { cursor: default; transform: none; }
+  .card .rate { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--muted); }
+  .card .rate .done { color: var(--good); font-weight: 600; }
+  .rv textarea { width: 100%; min-height: 54px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 12.5px; resize: vertical; outline: none; }
+  .rv textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .rv .seeall { display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .rv .seeall:hover { border-color: var(--accent); }
+  .rv .photoai { margin: 8px 0 2px; padding: 9px 11px; border-radius: 10px; background: #f5f3ff; border: 1px dashed #c4b5fd; font-size: 12.5px; line-height: 1.5; }
+  .rv .photoai.loading { color: #6d28d9; animation: pendingPulse 1.2s ease-in-out infinite; }
+  .rv .photoai.done { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+  .rv .photoai.off { background: var(--panel); border-color: var(--border); color: var(--muted); }
+  .rv .photoai.sus { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
+  .rv .photoai.sus b { color: #b45309; }
+  .rv .photoai b { color: #5b21b6; }
+  .rv .photoai .found { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+  .rv .photoai .found span { background: #fff; border-radius: 999px; padding: 2px 8px; font-size: 11.5px; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .rv .photoai .found span.bad { color: #991b1b; }
+  .rv .photoai .found span.kw { border: 1px dashed #c4b5fd; }
+  .rv .photoai .transient { margin: 2px 0 6px; padding: 5px 8px; border-radius: 8px; background: rgba(255,255,255,.6); color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+  .rv .photoai .acts { display: flex; gap: 6px; margin-top: 4px; }
+  .rv .photoai .acts button { border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; background: var(--bg); }
+  .rv .photoai .acts button.yes { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+  .rv .seeall small { font-weight: 400; color: var(--muted); }
+  /* full-screen review list for one segment (opened from the popup's "리뷰 N개 보기 →") */
+  #rvform, #myrv, #rvpage { position: fixed; inset: 0; z-index: 1500; background: var(--panel); display: none; flex-direction: column; }
+  #rvform.show, #myrv.show, #rvpage.show { display: flex; }
+  #rvform .top, #myrv .top, #rvpage .top { display: flex; align-items: center; gap: 10px; padding: max(10px, env(safe-area-inset-top)) 12px 10px; background: var(--bg); border-bottom: 1px solid var(--border); }
+  #rvform .top button, #myrv .top button, #rvpage .top button { border: 0; background: var(--panel); border-radius: 10px; padding: 8px 12px; font: inherit; font-weight: 600; cursor: pointer; }
+  #rvform .top .ttl, #myrv .top .ttl, #rvpage .top .ttl { flex: 1; min-width: 0; }
+  #rvform .top .ttl b, #myrv .top .ttl b, #rvpage .top .ttl b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #rvform .top .ttl small, #myrv .top .ttl small, #rvpage .top .ttl small { color: var(--muted); font-size: 12px; }
+  #myrv .sorts, #rvpage .sorts { display: flex; gap: 0; margin: 10px 12px 0; padding: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); }
+  #myrv .sorts button, #rvpage .sorts button { flex: 1; border: 0; border-radius: 999px; padding: 7px 6px; background: none; font: inherit; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+  #myrv .sorts button.on, #rvpage .sorts button.on { background: var(--accent); color: #fff; font-weight: 600; }
+  #myrv .hint, #rvpage .hint { margin: 6px 12px 0; font-size: 11.5px; color: var(--muted); }
+  #rvform .list, #myrv .list, #rvpage .list { flex: 1; overflow-y: auto; padding: 10px 12px calc(20px + env(safe-area-inset-bottom)); display: grid; gap: 10px; align-content: start; max-width: 640px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+  .rc { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; content-visibility: auto; contain-intrinsic-size: auto 140px; }
+  .rc.match { border-color: #c7d2fe; box-shadow: 0 0 0 2px #eef2ff; }
+  .rc .head { display: flex; align-items: center; gap: 8px; }
+  .rc .av { width: 30px; height: 30px; border-radius: 50%; background: var(--track); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex: none; }
+  .rc .who { flex: 1; min-width: 0; font-size: 13px; }
+  .rc .who b { font-weight: 700; } .rc .who small { display: block; color: var(--muted); font-size: 11.5px; }
+  .rc .sc { font-weight: 800; font-size: 16px; }
+  .rc .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .rc .tags span { font-size: 11.5px; padding: 2px 8px; border-radius: 999px; background: var(--track); }
+  .rc .tags span.bad { background: #fef2f2; color: #991b1b; }
+  .rc .aitags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11px; color: #5b21b6; }
+  .rc .aitags span { padding: 2px 8px; border-radius: 999px; background: #f3f0ff; border: 1px dashed #c4b5fd; }
+  .rc .aitags .lbl { padding: 0; border: 0; background: none; font-weight: 700; }
+  .rc .txt { margin-top: 8px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  .rc .txt.none { color: var(--muted); font-style: italic; }
+  .rc .ph { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .rc .ph a { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); display: block; }
+  .rc .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rc .foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+  .rc .foot .sp { flex: 1; }
+  .rc .foot .match { color: #4338ca; font-weight: 700; }
+  .rc .help { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .rc .help.on { background: #eef2ff; border-color: #a5b4fc; color: #3730a3; font-weight: 700; }
+  #myrv .empty, #rvpage .empty { padding: 30px; text-align: center; color: var(--muted); }
+  #rvform { z-index: 1550; }
+  #rvfloat { position: fixed; z-index: 1250; width: 340px; max-height: calc(100vh - 90px); display: none; flex-direction: column; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.22); overflow: hidden; }
+  #rvfloat.show { display: flex; }
+  #rvfloat .fh { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 12px; background: var(--panel); border-bottom: 1px solid var(--border); cursor: move; user-select: none; touch-action: none; }
+  #rvfloat .fh .grip { color: var(--faint); font-size: 13px; letter-spacing: -2px; }
+  #rvfloat .fh b { flex: 1; min-width: 0; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #rvfloat .fh .xclose { position: static; width: 28px; height: 28px; }
+  #rvfloat.dragging { opacity: .92; box-shadow: 0 16px 50px rgba(0,0,0,.3); }
+  #rvfloat .fb { overflow-y: auto; padding: 10px 12px 12px; }
+  #rvfloat .fb .rv { min-width: 0; }
+  #rvform .list { display: block; }
+  #rvform .rv { max-width: 560px; margin: 0 auto; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+  #rvform .rv .where { margin: 0 0 10px; }
+  #acctmenu button.stat { font: inherit; text-align: left; border: 0; cursor: pointer; }
+  #acctmenu button.stat:hover { background: var(--panel); }
+  .rc .segbtn { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .rc .segbtn:hover { border-color: var(--accent); }
+  .rc .seg { font-size: 13px; font-weight: 700; } .rc .seg small { font-weight: 400; color: var(--muted); }
+  .rc .kind { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--track); color: var(--muted); }
+  .rc .kind.report { background: #fef2f2; color: #991b1b; }
+  .rv .dangerbox { background: #fef2f2; border: 1px solid #fecaca; color: var(--bad); border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+  .danger-pin { width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2px solid #dc2626; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  #rankbtn { display: flex; align-items: center; gap: 6px; height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--bg); box-shadow: var(--shadow); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  #segbtn { display: flex; align-items: center; gap: 6px; height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--bg); box-shadow: var(--shadow); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  #segsearch { position: fixed; inset: 0; z-index: 1450; background: rgba(24,24,27,.35); display: none; align-items: flex-end; justify-content: center; }
+  #segsearch.show { display: flex; }
+  #segsearch .rk { position: relative; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 22px 22px 0 0; box-shadow: var(--shadow); padding: 22px; animation: rise .38s cubic-bezier(.2,.8,.2,1) both; }
+  @media (min-width: 761px) { #segsearch { align-items: center; } #segsearch .rk { border-radius: 22px; } }
+  #segsearch h1 { font-size: 20px; margin: 6px 0 2px; }
+  #segsearch p.lead { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  #segsearch .segq { display: flex; gap: 8px; margin-bottom: 12px; }
+  #segsearch .segq input { flex: 1; height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; font: inherit; font-size: 15px; }
+  #segsearch .segq button { height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+  #segsearch .list { display: grid; gap: 8px; }
+  #segsearch .empty { padding: 20px; text-align: center; color: var(--muted); }
+  .segcard { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); cursor: pointer; text-align: left; font: inherit; }
+  .segcard:hover { border-color: var(--accent); }
+  .segcard .nm { font-weight: 700; } .segcard .nm small { font-weight: 400; color: var(--muted); }
+  .segcard .meta { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .segcard .meta b { color: #b45309; }
+  .segcard.danger .nm::after { content: " ⚠️"; }
+  @media (max-width: 768px) { #segbtn { display: none !important; } }
+  #dangerbtn { display: flex; align-items: center; gap: 6px; height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--bg); box-shadow: var(--shadow); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  #dangerbtn.on { background: #fef2f2; color: #b91c1c; box-shadow: var(--shadow), inset 0 0 0 2px #dc2626; }
+  #dangerbtn.loading { opacity: .6; }
+  .danger-tip { font-size: 12.5px; line-height: 1.5; } .danger-tip b { color: #b91c1c; }
+  @media (max-width: 600px) { #rankbtn span, #dangerbtn span { display: none; } }
+  #ranking { position: fixed; inset: 0; z-index: 1450; background: rgba(24,24,27,.35); backdrop-filter: blur(3px); display: none; align-items: flex-end; justify-content: center; }
+  #ranking.show { display: flex; }
+  #ranking .rk { position: relative; width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 22px 22px 0 0; box-shadow: var(--shadow); padding: 22px; animation: rise .38s cubic-bezier(.2,.8,.2,1) both; }
+  @media (min-width: 761px) { #ranking { align-items: center; } #ranking .rk { border-radius: 22px; } }
+  #ranking h1 { font-size: 20px; margin: 6px 0 2px; }
+  #ranking p.lead { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  #ranking .tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 999px; padding: 2px; background: var(--panel); margin-bottom: 12px; }
+  #ranking .tabs button { flex: 1; border: 0; border-radius: 999px; padding: 7px 8px; background: none; font: inherit; font-size: 13px; color: var(--muted); cursor: pointer; }
+  #ranking .tabs button.on { background: var(--bg); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  #ranking .list { display: grid; gap: 10px; }
+  .rkcard { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); text-align: left; font: inherit; transition: border-color .15s, box-shadow .15s; }
+  .rkcard:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+  .rkcard .acts { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .rkcard .acts button { border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; background: var(--panel); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .rkcard .acts button:hover { border-color: var(--accent); }
+  .rkcard .acts button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .rkcard .tags { margin-top: 4px; font-size: 11.5px; color: var(--muted); }
+  .rk-pop { font-size: 13px; } .rk-pop b { display: block; margin-bottom: 6px; } .rk-pop button { border: 0; border-radius: 999px; padding: 6px 12px; background: var(--accent); color: #fff; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .rkcard .rank { width: 36px; height: 36px; border-radius: 50%; background: var(--track); color: var(--muted); font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .rkcard.top1 .rank { background: #fde68a; color: #92400e; } .rkcard.top2 .rank { background: #e5e7eb; color: #374151; } .rkcard.top3 .rank { background: #fed7aa; color: #9a3412; }
+  .rkcard .od { font-weight: 700; font-size: 15px; }
+  .rkcard .meta { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .rkcard .meta b { color: #b45309; }
+  .rkcard .sum { margin-top: 6px; font-size: 13px; line-height: 1.5; }
+  .rkcard .sum .aitag { display: inline-block; font-size: 10.5px; font-weight: 700; color: #5b21b6; background: #ede9fe; border-radius: 999px; padding: 0 6px; margin-right: 6px; vertical-align: 1px; }
+  .rkcard .sum .pending { color: var(--muted); animation: pendingPulse 1.2s ease-in-out infinite; }
+  .rkcard .sum small.muted { display: block; color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+  @keyframes pendingPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+  #ranking .empty { padding: 20px; text-align: center; }
   #dtop { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; z-index: 1200; display: none; align-items: center; gap: 10px; pointer-events: none; }
   #dtop > * { pointer-events: auto; }
   #dback { height: 42px; padding: 0 14px 0 10px; border: 0; border-radius: 12px; background: var(--bg); box-shadow: var(--shadow); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -263,6 +603,17 @@
   #dpanel .quick button:disabled { opacity: .4; cursor: default; }
 
   /* ---- route cards ---- */
+  .card .thumb { width: 200px; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: #eef0f2; margin: 8px 0 10px; pointer-events: none; display: none; }
+  @media (min-width: 761px) { .card.expanded .thumb.ready { display: block; } }  /* desktop only: the map already shows the line on phones */
+  /* compact card: colour bar, name, time/distance, one-line brief. Everything else lives in .xp (expanded) */
+  .card .brief { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px; font-size: 12px; color: var(--muted); }
+  .card .brief span { background: var(--track); border-radius: 999px; padding: 1px 8px; }
+  .card .brief span.good { background: #dcfce7; color: #166534; } .card .brief span.warn { background: #fef3c7; color: #92400e; }
+  .card .chev { margin-left: 6px; font-size: 11px; color: var(--faint); transition: transform .2s; display: inline-block; }
+  .card.expanded .chev { transform: rotate(180deg); }
+  .card .xp { display: none; }
+  .card.expanded .xp { display: block; animation: rise .25s ease both; }
+  .card .thumb .leaflet-control-attribution { display: none; }
   .card { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 14px 12px 18px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s, border-color .15s; overflow: hidden; animation: stepIn .3s both; }
   .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--c); }
   .card:hover, .card.hot { border-color: var(--c); box-shadow: var(--shadow); }
@@ -275,11 +626,20 @@
   .card.dimmed { opacity: .55; }
   .card .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
   .card .name { font-weight: 700; font-size: 15px; }
-  .card .beta { margin-left: 6px; font-size: 11px; font-weight: 600; color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); padding: 1px 7px; border-radius: 999px; vertical-align: 1px; }
+  .card .beta { display: none; margin-left: 6px; font-size: 11px; font-weight: 600; color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); padding: 1px 7px; border-radius: 999px; vertical-align: 1px; }
   .card .len { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
   .card .len small { color: var(--muted); font-weight: 400; margin-left: 4px; }
   .card .why { margin: 8px 0 2px; font-size: 13.5px; line-height: 1.55; }
   .card .open { margin-top: 10px; width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--accent); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .card .poi { margin-top: 6px; width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .card .poi.on { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
+  .card .poi:disabled { opacity: .5; cursor: default; }
+  .card .poi small { font-weight: 400; color: var(--muted); }
+  .poi-pin { width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: #fff; border: 2px solid #f97316; box-shadow: 0 1px 4px rgba(0,0,0,.3); display: flex; align-items: center; justify-content: center; }
+  .poi-pin span { transform: rotate(45deg); font-size: 14px; line-height: 1; }
+  .poi-pin.cafe { border-color: #a16207; } .poi-pin.restaurant { border-color: #dc2626; } .poi-pin.tourist { border-color: #2563eb; }
+  .poi-pop { font-size: 13px; min-width: 160px; } .poi-pop b { display: block; font-size: 14px; } .poi-pop small { color: var(--muted); display: block; margin-top: 2px; }
+  .poi-pop a { display: inline-block; margin-top: 8px; padding: 5px 10px; border-radius: 999px; background: #fee500; color: #191919; font-weight: 700; text-decoration: none; font-size: 12px; }
   .card .open:hover { border-color: var(--accent); background: rgba(37,99,235,.05); }
   .card .note { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
   .more { border: 0; background: none; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; padding: 0; margin-top: 8px; }
@@ -372,9 +732,6 @@
   .rv .chips button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; }
   .rv .chips.good button.on { border-color: var(--good); background: #dcfce7; color: var(--good); }
   .rv .chips.bad button.on { border-color: var(--bad); background: #fee2e2; color: var(--bad); }
-  .rv .gallery { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 2px; }
-  .rv .gallery a { display: block; width: 64px; height: 64px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--track); }
-  .rv .gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .rv .attach { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .rv .attach label { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border: 1px dashed var(--border); border-radius: 999px; font-size: 12px; color: var(--muted); cursor: pointer; }
   .rv .attach label:hover { color: var(--text); border-color: #cfcfd4; }
@@ -391,6 +748,35 @@
   #lightbox .cap { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: #fff; font-size: 12.5px; text-shadow: 0 1px 3px #000; }
   .rv .submit { width: 100%; margin-top: 10px; padding: 8px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
   .rv .submit:disabled { opacity: .5; cursor: default; }
+  /* ---- ≡ side menu (phones only): replaces the 🏆 ⚠️ 취향 buttons of the top bar ---- */
+  #menubtn { display: none; width: 46px; height: 46px; border: 0; border-radius: 12px; background: var(--bg); box-shadow: var(--shadow); font-size: 24px; line-height: 1; cursor: pointer; color: var(--text); }
+  #sidemenu { position: fixed; inset: 0; z-index: 1600; background: rgba(24,24,27,.45); display: none; }
+  #sidemenu.show { display: block; }
+  #sidemenu .panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(78vw, 300px); background: var(--bg); box-shadow: -8px 0 30px rgba(0,0,0,.18); padding: max(14px, env(safe-area-inset-top)) 14px 20px; display: flex; flex-direction: column; gap: 6px; transform: translateX(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+  #sidemenu.show .panel { transform: none; }
+  #sidemenu .ttl { display: flex; align-items: center; justify-content: space-between; font-weight: 800; font-size: 16px; padding: 4px 6px 10px; }
+  #sidemenu .ttl .xclose { position: static; }
+  #sidemenu .panel > button:not(.xclose) { display: flex; align-items: center; gap: 8px; width: 100%; padding: 13px 12px; border: 0; border-radius: 12px; background: none; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer; }
+  #sidemenu .panel > button:hover, #sidemenu .panel > button:active { background: var(--panel); }
+  #sidemenu .state { display: none; margin-left: auto; font-size: 11px; font-weight: 700; color: #b91c1c; background: #fef2f2; border-radius: 999px; padding: 2px 8px; }
+  #sidemenu #sm-danger.on .state { display: inline-block; }
+  @media (max-width: 768px) {
+    #rankbtn, #dangerbtn, #prefbtn, #prefmenu, #searchbtn { display: none !important; }  /* top bar = AI field + ≡ + avatar */
+    #menubtn { display: block; }
+  }
+  /* ---- phone performance: blur and big shadows over the map are the costliest effects on mobile GPUs ---- */
+  @media (max-width: 760px) {
+    #onboard, #ranking, #aimodal { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(24,24,27,.5); }
+    #intro .skip { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(255,255,255,.92); }
+    #intro .slide .emo { filter: none; }
+    :root { --shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.08); }
+    .card { transition: none; }
+    .card:hover { box-shadow: none; }  /* touch "hover" sticks after a tap; nothing to animate */
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+  /* ============ 디자인 수정 가능 영역 끝 ============ */
 </style>
 </head>
 <body>
@@ -398,27 +784,31 @@
 
 <div id="topbar">
   <div id="ask" class="off">
-    <div class="field"><span class="icon">💬</span><input id="askinput" type="text" placeholder="어떤 길을 원하세요? (예: 조용하고 카페 많은 길로 천천히)" autocomplete="off" spellcheck="false"><span class="spin"></span></div>
-    <div class="offnote" id="askoff">AI가 꺼져 있어요 — 취향은 버튼으로 고를 수 있어요</div>
-    <button id="aiunlock" type="button">✨ AI 켜기</button>
+    <div class="field"><span class="icon">💬</span><input id="askinput" type="text" placeholder="어떤 길을 원하시나요? (예: 조용하고 카페 많은 길로 천천히)" autocomplete="off" spellcheck="false"><span class="spin"></span></div>
+    <div class="offnote" id="askoff">이 서버에서는 AI 기능을 쓸 수 없어요 — 취향은 버튼으로 고를 수 있어요</div>
   </div>
   <div id="askhint"></div>
   <button id="searchbtn" type="button"><span>🔍</span><span class="q" id="searchlabel">어디로 갈까요?</span></button>
   <div id="prefwrap">
+    <button id="rankbtn" type="button" title="인기 경로">🏆<span> 인기 경로</span></button>
+    <button id="segbtn" type="button" title="길 이름으로 찾아 리뷰 남기기">✍️<span> 길 리뷰</span></button>
+    <button id="dangerbtn" type="button" title="무서움·어두움 신고 3건 이상 구간" aria-pressed="false">⚠️<span> 위험 구간</span></button>
     <button id="prefbtn" type="button"><span class="e">✨</span><span><b>취향</b><span class="subs"></span></span><small>취향 변경</small></button>
     <div id="prefmenu">
       <button type="button" data-mode="once">🕐 이번만 변경<small>지금 세션에서만 다른 취향으로 찾아요</small></button>
       <button type="button" data-mode="default">⭐ 기본값 바꾸기<small>온보딩을 다시 하고 기본값을 새로 저장해요</small></button>
     </div>
+    <button id="menubtn" type="button" title="메뉴" aria-label="메뉴" aria-expanded="false">≡</button>
     <div id="acctwrap">
       <button id="avatar" type="button" title="계정"><span>?</span></button>
       <div id="acctmenu">
         <div class="who"><i>?</i><div><b id="usermenu">닉네임</b><small>내 계정</small></div></div>
-        <div class="stat"><span>⭐ 내가 남긴 리뷰</span><b id="acctreviews">–</b></div>
+        <button type="button" class="stat" id="acctmyrv" title="내 리뷰 보기"><span>⭐ 내가 남긴 리뷰</span><b id="acctreviews">–</b></button>
         <div class="stat" id="acctextra" hidden><span>📷 사진 · ⚑ 신고</span><b id="acctextraval"></b></div>
-        <button type="button" id="gpstoggle" class="switch"><span>📍 위치 사용<small id="gpshint">현재 위치를 지도에 표시하고 출발지로 써요</small></span><i></i></button>
+        <button type="button" id="gpstoggle" class="switch" role="switch" aria-checked="false"><span>📍 위치 사용<small id="gpshint">현재 위치를 지도에 표시하고 출발지로 써요</small></span><i></i></button>
         <button type="button" id="changeuser">🔄 닉네임 변경</button>
-        <button type="button" id="acctprefs">🎯 취향 변경<small>온보딩을 다시 해요</small></button>
+        <button type="button" id="acctprefs">🎯 취향 변경</button>
+        <button type="button" id="acctintro">📖 앱 소개 다시 보기</button>
         <button type="button" id="logout" class="danger">로그아웃<small>이 브라우저에서만 나가요 — 취향은 닉네임으로 다시 불러와요</small></button>
       </div>
     </div>
@@ -426,13 +816,13 @@
 </div>
 
 <div id="sheet">
-  <div class="grab" id="grab"><span class="t" id="sheettitle">경로 찾기</span><button type="button" class="x" id="sheetclose">지도 보기 ▾</button></div>
+  <div class="grab" id="grab"><span class="t" id="sheettitle">경로 탐색</span><button type="button" class="x" id="sheetclose">지도 보기 ▾</button></div>
   <div class="body">
-    <section>
+    <section id="inputs">
       <h2>출발 · 도착</h2>
       <div class="place origin" data-key="o">
         <span class="dot"></span>
-        <input id="oq" type="text" placeholder="출발지 검색 — 예: 경복궁, 또는 37.579, 126.977" autocomplete="off" spellcheck="false">
+        <input id="oq" type="text" placeholder="출발지를 직접 입력하거나 지도를 클릭해주세요" autocomplete="off" spellcheck="false">
         <span class="btns"><button id="gps" class="pick" type="button" title="브라우저 위치로 출발지 설정">📍 내 위치</button><button class="pick" data-key="o" type="button">지도 클릭</button></span>
         <div class="meta" id="ometa"></div>
         <div class="results" id="ores"></div>
@@ -445,35 +835,138 @@
         <div class="results" id="dres"></div>
       </div>
       <div class="swap"><button id="swap" type="button">⇅ 출발·도착 바꾸기</button></div>
-      <button id="go" class="primary" type="button">경로 찾기</button>
+      <div id="wpsec">
+        <div class="head"><span>🚩 경유지 <b id="wpcount">0</b>/6</span><button id="wpadd" type="button">＋ 경유지 추가</button></div>
+        <div id="wpsearch"><input id="wpq" type="text" placeholder="경유지 검색 (예: 인사동) 또는 지도 클릭" autocomplete="off" spellcheck="false"><div class="results" id="wpres"></div><div class="hint">장소를 검색하거나 지도에서 선택한 후 ‘추가 종료’ 버튼을 눌러주세요</div></div>
+        <ul id="wplist"></ul>
+        <div id="wpmode" hidden><button type="button" data-mode="auto" class="on">✨ 최적 경로 자동 설정</button><button type="button" data-mode="manual">☰ 경유 순서 직접 설정</button></div>
+        <div id="wpmodehint" hidden></div>
+        <div id="wpfoot" hidden><span id="wpfootnote"></span><button id="wpgo" type="button">경유지 반영</button></div>
+      </div>
+      <button id="go" class="primary" type="button">경로 탐색</button>
       <div id="error" class="error"></div>
     </section>
     <section id="routes" hidden>
-      <h2>추천 경로</h2>
-      <button id="clearroutes" class="ghost" type="button" style="margin:0 0 10px">↺ 경로 지우고 지도에서 다시 고르기</button>
-      <div id="compare"></div>
-      <div id="total" class="total"></div>
+      <!-- Collapsed origin/destination summary: the input form above is hidden while routes are shown (수정 re-opens it). -->
+      <div id="odsummary"><span class="od" id="odtext"></span><span class="acts"><button type="button" id="odedit">✎ 수정</button><button type="button" id="clearroutes" title="경로 초기화">↺</button></span></div>
       <div id="cards"></div>
     </section>
   </div>
 </div>
 
+<!-- phone side menu (≡): the desktop top-bar buttons live here on small screens -->
+<div id="sidemenu" aria-hidden="true">
+  <div class="panel" role="menu">
+    <div class="ttl">메뉴<button type="button" class="xclose" id="smclose" title="닫기">×</button></div>
+    <button type="button" id="sm-rank">🏆 인기 경로</button>
+    <button type="button" id="sm-danger">⚠️ 위험 구간<span class="state">표시 중</span></button>
+    <button type="button" id="sm-prefs">🎯 취향 변경</button>
+    <button type="button" id="sm-seg">✍️ 길 리뷰 남기기</button>
+    <button type="button" id="sm-intro">📖 앱 소개 다시 보기</button>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="intro" aria-label="앱 소개">
+  <button type="button" class="skip" id="introskip">건너뛰기</button>
+  <div class="track" id="introtrack">
+    <section class="slide" style="--sbg:#e8f1ff"><img class="emo" src="img/logo.png" alt="에움길 로고"><h2>'에움길'에 오신 것을 환영해요</h2><p>‘에움길’은 우회로를 뜻하는 순우리말로, 조금 돌아가더라도 사용자의 취향을 반영한 최적의 도보 경로를 추천해요</p></section>
+    <section class="slide" style="--sbg:#fff1e6"><h2>두 가지 방법으로 취향을 알려주세요</h2><p>선택지를 고르거나, 원하는 분위기를 직접 입력할 수 있어요</p>
+      <div class="mockchoices">
+        <div class="mockchoice mc-a"><span class="e">🎯</span>버튼으로 고르기</div>
+        <div class="mockchoice mc-b"><span class="e">💬</span>직접 말하기</div>
+      </div>
+      <div class="mockpreview">
+        <div class="mockprev-chips"><span>🌹 데이트</span><span>🧘 혼자</span><span>👨‍👩‍👧 가족</span><span>📷 관광</span></div>
+        <div class="mockprev-ai">“오늘 데이트인데 조용하고 감성적인 길로”</div>
+      </div>
+    </section>
+    <section class="slide" style="--sbg:#e9f9ee"><h2>주변 맛집과 볼거리를 포함한
+개인 맞춤형 경로를 추천해요</h2>
+      <div class="mockcards">
+        <div class="mockcard" style="--c:#4A90D9"><span class="mc-name">최단</span><span class="mc-len">18분 · 1.2km</span><span class="mc-tags">🍜 맛집 2</span></div>
+        <div class="mockcard" style="--c:#50C878"><span class="mc-name">균형</span><span class="mc-len">23분 · 1.5km</span><span class="mc-tags">🌳 공원 · 맛집 3</span></div>
+        <div class="mockcard" style="--c:#FF8C69"><span class="mc-name">맞춤</span><span class="mc-len">26분 · 1.6km</span><span class="mc-tags">📷 포토스팟 2</span></div>
+      </div>
+    </section>
+    <section class="slide" style="--sbg:#f1ecff"><h2>AI에게 말을 걸어보세요</h2><p>가고싶은 곳을 어떻게 가고싶은지 자유롭게 입력하면
+AI가 알아서 경로를 추천해줘요</p>
+      <div class="aipill mockcycle">💬 어떤 길을 원하시나요?</div>
+      <div class="mockaibox"><span class="mai-input">가고 싶은 곳을 자유롭게 적어보세요</span><span class="mai-send">전송</span></div>
+    </section>
+    <section class="slide" style="--sbg:#fff8dc"><h2>인기 경로와 위험 구간을 확인해보세요</h2><p>다른 사용자가 좋아한 길은 랭킹에서,
+피해야할 구간은 지도 내에서 바로 확인할 수 있어요</p>
+      <div class="mockrank"><span class="mr-medal">🥇</span><span class="mr-name">경복궁 → 익선동 벚꽃길</span><span class="mr-like">❤ 128</span></div>
+      <div class="mockmap"><div class="mockpin">⚠️</div></div>
+      <div class="mocktoggle"><span class="mt-track"><span class="mt-dot"></span></span>위험 구간 표시</div>
+    </section>
+    <section class="slide" style="--sbg:#ffeef2"><h2>걷고 나서 평가해요</h2><p>구간별 리뷰를 남기면 다음 이용 시 경로에 반영돼요
+내 리뷰가 쌓일수록 '에움길'은 더 똑똑해져요</p>
+      <div class="mockreview">
+        <div class="mockreview-stars">★★★★★</div>
+        <div class="mockreview-tags"><span>🌳 나무 많음</span><span>💡 밝음</span></div>
+        <div class="mockreview-btn">제출</div>
+      </div>
+    </section>
+  </div>
+  <div class="foot"><div class="dots" id="introdots"></div><div class="nav"><button type="button" id="introprev" hidden>← 이전</button><button type="button" id="intronext">다음 →</button><button type="button" id="introgo" class="go" hidden>시작하기 →</button></div></div>
+</div>
 <div id="lock">
   <form id="loginform">
     <button type="button" class="xclose" id="loginclose" title="닉네임 없이 둘러보기">×</button>
     <div style="font-size:40px">🚶</div>
-    <h1>산책 경로 후보</h1>
-    <p>닉네임을 입력해주세요. 남긴 리뷰에 표시되고, 내 리뷰는 내 경로에 더 크게 반영돼요.</p>
+    <h1>사용자명을 입력해주세요</h1>
+    <p>내가 남긴 리뷰는 이후 경로 추천에 우선 반영돼요</p>
     <input id="nickname" type="text" maxlength="30" autocomplete="nickname" placeholder="닉네임">
+    <p class="privacy">🔒 닉네임은 리뷰에 일부 공개돼요 <small>(예: 이영규 → 이**, Andy → A***)</small></p>
     <button class="primary" type="submit">시작하기</button>
     <div id="loginerror" class="error"></div>
   </form>
 </div>
 
+<div id="ranking">
+  <div class="rk">
+    <button type="button" class="xclose" id="rankclose" title="닫기">×</button>
+    <h1>🏆 인기 경로</h1>
+    <p class="lead" id="ranklead">현재 위치 기준 반경 2 km · 리뷰 3건 이상 구간</p>
+    <div class="tabs"><button type="button" data-period="week" class="on">이번 주</button><button type="button" data-period="month">이번 달</button></div>
+    <div class="list" id="ranklist"></div>
+  </div>
+</div>
+<!-- street search for reviews: type a street name, pick a stretch, review it (no route needed) -->
+<div id="segsearch">
+  <div class="rk">
+    <button type="button" class="xclose" id="segclose" title="닫기">×</button>
+    <h1>✍️ 길 리뷰 남기기</h1>
+    <p class="lead">길 이름을 입력하면 해당 구간을 지도에 표시해요. 구간을 고르면 리뷰를 남길 수 있어요.</p>
+    <div class="segq"><input id="segq" type="text" placeholder="길 이름 (예: 인사동길, 세종대로)" autocomplete="off" spellcheck="false"><button type="button" id="seggo">검색</button></div>
+    <div class="list" id="seglist"></div>
+  </div>
+</div>
 <div id="dtop"><button id="dback" type="button">← 뒤로</button><div id="dtitle"></div><button type="button" class="xclose light" id="dclose" title="닫기" style="position:static;margin-left:auto">×</button></div>
 <div id="dpanel"><div class="body" id="dbody"></div></div>
+<div id="rvpage">
+  <div class="top"><button type="button" id="rvback">← 뒤로</button><div class="ttl"><b id="rvttl"></b><small id="rvsub"></small></div></div>
+  <div class="sorts"><button type="button" data-sort="recent" class="on">최신순</button><button type="button" data-sort="popular">인기순</button><button type="button" data-sort="match">취향 일치순</button></div>
+  <div class="hint" id="rvhint"></div>
+  <div class="list" id="rvlist"></div>
+</div>
+<!-- phone review page (/review?edge_id=&route_id=): the same form as the desktop popup, full screen -->
+<!-- desktop review panel: floats over the map, drag by its header; placed top-right while the route detail panel is open -->
+<div id="rvfloat" role="dialog" aria-label="리뷰 남기기">
+  <div class="fh" id="rvfloathead"><span class="grip">⋮⋮</span><b id="rvfloatttl">리뷰 남기기</b><button type="button" class="xclose light" id="rvfloatclose" title="닫기">×</button></div>
+  <div class="fb" id="rvfloatbody"></div>
+</div>
+<div id="rvform">
+  <div class="top"><button type="button" id="rvformback">← 뒤로</button><div class="ttl"><b id="rvformttl">리뷰 남기기</b><small id="rvformsub"></small></div></div>
+  <div class="list" id="rvformbody"></div>
+</div>
+<div id="myrv">
+  <div class="top"><button type="button" id="myrvback">← 뒤로</button><div class="ttl"><b id="myrvttl">내 리뷰</b><small id="myrvsub"></small></div></div>
+  <div class="sorts"><button type="button" data-tab="positive" class="on">긍정 리뷰</button><button type="button" data-tab="report">신고 사항</button></div>
+  <div class="hint" id="myrvhint"></div>
+  <div class="list" id="myrvlist"></div>
+</div>
 <div id="lightbox"><button type="button" class="xclose" title="닫기">×</button><img alt=""><div class="cap"></div></div>
-<button id="aitoggle" type="button" title="Claude API 사용 여부"><i></i><span>AI OFF</span></button>
 
 <div id="aimodal">
   <form id="aiform">
@@ -552,10 +1045,11 @@
   </div>
 </div>
 
+<!-- ============ 여기부터 파일 끝까지 수정 금지 (JavaScript: 지도·경로 탐색·API·이벤트) ============ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const CENTER = [37.5720, 126.9769], RADIUS_M = 2000;
-const COLORS = ["#4A90D9", "#50C878", "#FF8C69"];  // shortest / balanced / calm
+const COLORS = ["#4A90D9", "#50C878", "#FF8C69"];  // shortest / balanced / calm  (디자인: 경로 색은 여기서 정해집니다 — 값 변경은 개발자에게 요청)
 const LINE = { base: 3, hover: 5, selected: 5, focus: 6, focused: 10 };  // stroke widths in px; focused = card clicked
 const darken = (hex, k = 0.78) => "#" + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * k).toString(16).padStart(2, "0")).join("");
 const TREE_CAP = 15, PARK_CAP = 300;  // same caps as routing.py, for the bars
@@ -566,11 +1060,11 @@ const DEFAULT_KEY = "walkroute.default.v1";   // localStorage: the saved default
 const SESSION_KEY = "walkroute.session.v1";   // sessionStorage: a one-time override for this tab only
 const $ = id => document.getElementById(id);
 const USER_KEY = "walkroute.user", AI_SESSION_KEY = "walkroute.ai-token";  // nickname in localStorage; AI unlock in sessionStorage (this tab)
-const API = { enabled: false, flag: true, hasKey: false, aiLocked: false };  // from GET /api/status
+const API = { enabled: false, flag: true, hasKey: false, aiLocked: false, kakao: false, kakaoJsKey: null };  // from GET /api/status
 let userId = "";  // nickname; sent as user_id with every route/review request
-let aiOn = false;  // off until unlocked in this tab; effective AI = aiOn && API.enabled
+let aiOn = true;  // AI is always on; the only gate left is the server (API.enabled) and an optional AI_PASSWORD (aiLocked)
 let aiToken = "";   // X-AI-Token once AI_PASSWORD was entered (or "" when the server has no AI password)
-const aiActive = () => aiOn && API.enabled;
+const aiActive = () => API.enabled && (!API.aiLocked || !!aiToken);  // locked servers: on once the tab holds the token
 const storage = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 // All backend calls go through here: attaches the AI unlock token when we have one.
 async function api(path, opts = {}) {
@@ -591,7 +1085,7 @@ const PURPOSES = [
     { id: "photo", emoji: "📸", name: "인생샷 남기게", desc: "사진 찍을 곳이 많은 길", w: [1.5, 3] },
     { id: "park", emoji: "🌊", name: "공원/수변으로", desc: "탁 트이고 한적한 길", w: [3, 1, 2] },
   ]},
-  { id: "solo", emoji: "🧘", name: "혼자 산책", desc: "내 속도로 걷는 길", lead: "오늘은 어떻게 걷고 싶으세요?", subs: [
+  { id: "solo", emoji: "🧘", name: "혼자 산책", desc: "내 속도로 걷는 길", lead: "오늘은 어떻게 걷고 싶으신가요?", subs: [
     { id: "quiet", emoji: "🌿", name: "조용하게", desc: "차와 사람이 적은 길", w: [4, 0.5] },
     { id: "lively", emoji: "🎵", name: "활기차게", desc: "볼거리 많은 길", w: [0.5, 3] },
     { id: "food", emoji: "🍽️", name: "맛집 구경하며", desc: "먹거리 골목 위주", w: [1, 3.5] },
@@ -601,7 +1095,7 @@ const PURPOSES = [
     { id: "park", emoji: "🌳", name: "공원 위주로", desc: "쉬어갈 곳이 있는 길", w: [3, 1, 2] },
     { id: "sights", emoji: "🏛️", name: "볼거리 있게", desc: "아이가 지루하지 않게", w: [1.5, 3] },
   ]},
-  { id: "tour", emoji: "📷", name: "관광", desc: "서울을 처음 걷는다면", lead: "어떤 관광을 원하세요?", subs: [
+  { id: "tour", emoji: "📷", name: "관광", desc: "서울을 처음 걷는다면", lead: "어떤 관광을 원하시나요?", subs: [
     { id: "photo", emoji: "📸", name: "포토스팟 위주", desc: "사진 찍기 좋은 길", w: [1, 3.5] },
     { id: "sights", emoji: "🗺️", name: "주요 명소 경유", desc: "볼거리를 지나는 길", w: [1, 2.5] },
     { id: "food", emoji: "🍜", name: "먹거리 위주", desc: "맛집이 많은 길", w: [0.5, 4] },
@@ -687,7 +1181,7 @@ const CANDIDATE_KEY = { 0: "shortest", 1: "balanced", 2: "calm" };
 // ---------- state + localStorage ----------
 // source: "default" (saved in localStorage) | "once" (this tab only) | null (nothing chosen yet)
 // mode: "buttons" (purpose/subs/avoid cards) | "ai" (free text interpreted by Claude into weights)
-const state = { mode: "buttons", purpose: null, subs: [], avoid: [], source: null, ai: null, weights: { w_vehicle: 0, w_tree: 0, w_park: 0, w_vibe: 0 }, avoid_steps: false };
+const state = { mode: "buttons", purpose: null, subs: [], avoid: [], source: null, ai: null, waypoints: [], weights: { w_vehicle: 0, w_tree: 0, w_park: 0, w_vibe: 0 }, avoid_steps: false };
 function readPrefs(store, key) {
   try { const raw = store.getItem(key); return raw ? parsePrefs(JSON.parse(raw)) : null; } catch { return null; }
 }
@@ -697,7 +1191,7 @@ function parsePrefs(saved) {
     const avoid = (saved.avoid || []).filter(t => AVOIDS.some(a => a[1] === t) || ["차 많음", "사람 붐빔", "포장 상태"].includes(t));
     if (saved.mode === "ai") {
       if (!saved.ai?.text || !saved.weights) return null;
-      return { mode: "ai", purpose: null, subs: [], avoid, ai: { text: saved.ai.text, summary: saved.ai.summary || "" }, weights: saved.weights, avoid_steps: !!saved.avoid_steps };
+      return { mode: "ai", purpose: null, subs: [], avoid, ai: { text: saved.ai.text, summary: saved.ai.summary || "", origin_name: saved.ai.origin_name || null, destination_name: saved.ai.destination_name || null, waypoints: saved.ai.waypoints || [] }, weights: saved.weights, avoid_steps: !!saved.avoid_steps };
     }
     const purpose = PURPOSES.find(p => p.id === saved.purpose); if (!purpose) return null;
     const subs = (saved.subs || []).map(id => purpose.subs.find(s => s.id === id)).filter(Boolean);
@@ -760,7 +1254,7 @@ async function interpret(text) {
   const res = await api("/api/interpret", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error + (data.detail ? ` — ${data.detail}` : "") || res.statusText);
-  state.ai = { text, summary: data.summary, origin_name: data.origin_name || null, destination_name: data.destination_name || null };
+  state.ai = { text, summary: data.summary, origin_name: data.origin_name || null, destination_name: data.destination_name || null, waypoints: data.waypoints || [] };
   state.weights = { w_vehicle: data.w_vehicle, w_vibe: data.w_vibe, w_park: data.w_park, w_tree: data.w_tree };
   state.avoid_steps = data.avoid_steps;
   if (data.avoid_tags.length) state.avoid = [...new Set([...state.avoid, ...data.avoid_tags])];
@@ -780,17 +1274,59 @@ async function applyPlaces(ai) {
       set.push(`${key === "o" ? "출발" : "도착"} ${h.name || name}`);
     } catch { /* keep the current point */ }
   }
+  // Waypoints named in the sentence replace the current list (in the order they were mentioned).
+  if (ai?.waypoints?.length) {
+    const found = [];
+    for (const name of ai.waypoints.slice(0, 6)) {
+      try {
+        const hits = await nominatim("search", { q: name, limit: 1, countrycodes: "kr", viewbox: VIEWBOX, bounded: 0 });
+        if (!hits.length) continue;
+        const h = hits[0], ll = L.latLng(+h.lat, +h.lon);
+        if (map.distance(ll, CENTER) > RADIUS_M) continue;  // outside the covered area: skip silently
+        found.push({ latlng: ll, name: h.name || name });
+      } catch { /* skip */ }
+    }
+    if (found.length) { state.waypoints = found; renderWaypoints(); set.push(`경유 ${found.map(w => w.name).join(", ")}`); }
+  }
   return set;
+}
+// When the sentence names no origin / destination (and the user never picked one), the AI does not ask back: it shows a
+// chooser - search or map click. The weights / waypoints it already applied stay, and the search runs by itself once
+// the missing point(s) are set (pendingSearch, checked in setPoint).
+let pendingSearch = false, pickQueue = [];
+function showPlaceChooser(need) {
+  const what = need.length === 2 ? "출발지와 도착지를" : need[0] === "o" ? "출발지를" : "도착지를";
+  const hint = $("askhint"); hint.className = "show";
+  hint.innerHTML = `<div class="ask-bubble"><span class="who">🤖</span><div class="body">${state.ai?.summary ? `<span class="chip">${state.ai.summary}</span> 취향은 적용했어요. ` : ""}<b>${what} 선택해주세요</b>${state.waypoints.length ? ` <small>(경유지 ${state.waypoints.length}곳은 반영됨)</small>` : ""}
+    <div class="ways"><button type="button" data-way="search">🔍 검색으로 입력</button><button type="button" data-way="map">🗺 지도 클릭으로 입력</button></div></div></div>`;
+  pendingSearch = true;
+  hint.querySelector('[data-way="search"]').addEventListener("click", () => {
+    $("inputs").classList.remove("collapsed"); openSheet();
+    setTimeout(() => $(need[0] + "q").focus(), 350);  // origin first, or the one that is missing
+  });
+  hint.querySelector('[data-way="map"]').addEventListener("click", () => { pickQueue = need.slice(1); armPick(need[0]); });
+}
+// Arm "지도 클릭" for a point (same as pressing the button next to the field).
+function armPick(key) {
+  setPick(key); picking = true;
+  pickButtons.forEach(x => x.classList.toggle("armed", x.dataset.key === key));
+  if (isPhone()) peekSheet();
+  showToast(`지도에서 ${key === "o" ? "출발지" : "도착지"} 위치를 탭하세요`, { ms: 8000, action: { label: "취소", onClick: () => { picking = false; pickQueue = []; pickButtons.forEach(x => x.classList.remove("armed")); if (isPhone()) halfOrOpen(); } } });
 }
 async function interpretWish(text) {
   const box = $("ask"), hint = $("askhint");
   box.classList.add("busy"); $("askinput").disabled = true;
   hint.className = "show"; hint.innerHTML = "<span>해석 중…</span>";
+  pendingSearch = false; pickQueue = [];
   try {
     const data = await interpret(text);  // one-off override on top of the current mode
     renderPrefChip();
-    hint.innerHTML = `<span class="chip">${data.summary}</span><span>${weightsText()}</span>${state.ai.origin_name || state.ai.destination_name ? "<span>· 장소 찾는 중…</span>" : ""}`;
+    hint.innerHTML = `<span class="chip">${data.summary}</span><span>${weightsText()}</span>${state.ai.origin_name || state.ai.destination_name || state.ai.waypoints?.length ? "<span>· 장소 찾는 중…</span>" : ""}`;
     const placed = await applyPlaces(state.ai);
+    // Still unknown after geocoding: a point that is neither named in the sentence nor ever set by the user.
+    // Waypoints are optional - only origin / destination gate the search.
+    const need = ["o", "d"].filter(k => !pointsSet[k]);
+    if (need.length) { if (current) clearRoutes(); showPlaceChooser(need); return; }
     if (placed.length) { clearRoutes(); }  // new OD: drop stale routes before searching
     hint.innerHTML = `<span class="chip">${data.summary}</span><span>${weightsText()}</span>${placed.length ? `<span class="chip">${placed.join(" → ")}</span>` : ""}<button type="button" id="askreset">취향으로 되돌리기</button>`;
     $("askreset").addEventListener("click", () => { $("askinput").value = ""; hint.className = ""; if (state.mode === "ai") { const saved = readPrefs(sessionStorage, SESSION_KEY) || readPrefs(localStorage, DEFAULT_KEY); if (saved) usePrefs(saved, state.source); applyState(); } else applyPreset(); });
@@ -805,18 +1341,13 @@ $("askinput").addEventListener("keydown", e => {
   if (e.key !== "Enter") return;
   e.preventDefault();
   const text = $("askinput").value.trim();
-  if (text && aiActive()) interpretWish(text);
+  if (!text || !API.enabled) return;
+  aiActive() ? interpretWish(text) : requestAiOn(() => interpretWish(text));
 });
 function syncAiUi() {
-  const on = aiActive();
-  $("aitoggle").className = on ? "on" : "";
-  $("aitoggle").querySelector("span").textContent = !API.enabled ? (API.flag ? "AI OFF (키 없음)" : "AI OFF (서버)") : on ? "AI ON" : "AI OFF";
-  $("aitoggle").disabled = !API.enabled;
+  const on = API.enabled;  // the field is always active when the server can talk to Claude
   $("ask").classList.toggle("off", !on);
   $("askinput").disabled = !on;
-  $("askoff").textContent = !API.enabled ? "이 서버에서는 AI 기능을 쓸 수 없어요 — 취향은 버튼으로 고를 수 있어요" : "AI가 꺼져 있어요 — 취향은 버튼으로 고를 수 있어요";
-  $("aiunlock").textContent = on ? "AI 끄기" : "✨ AI 켜기";
-  $("aiunlock").disabled = !API.enabled;
   $("modeAI").classList.toggle("off", !on);
   $("modeAIdesc").textContent = on ? "원하는 길을 문장으로 입력하면 AI가 경로 기준으로 변환합니다" : (API.enabled ? "AI 기능이 꺼져 있습니다 — 선택 시 AI 비밀번호를 확인합니다" : "이 서버에서는 AI 기능을 사용할 수 없습니다");
 }
@@ -824,15 +1355,12 @@ function syncAiUi() {
 let unlockThen = null;
 function requestAiOn(then) {
   if (!API.enabled) return;
-  if (aiOn) { then?.(); return; }
-  if (!API.aiLocked || aiToken) { aiOn = true; syncAiUi(); then?.(); return; }
+  if (aiActive()) { then?.(); return; }
   unlockThen = then || null;
   $("aierror").className = "error"; $("aipw").value = "";
   $("aimodal").classList.add("show"); setTimeout(() => $("aipw").focus(), 80);
 }
-function setAiOff() { aiOn = false; syncAiUi(); }
-$("aiunlock").addEventListener("click", () => (aiOn ? setAiOff() : requestAiOn()));
-$("aitoggle").addEventListener("click", () => (aiOn ? setAiOff() : requestAiOn()));
+function setAiOff() { /* AI cannot be switched off any more; kept so older call sites are harmless */ }
 $("aicancel").addEventListener("click", () => { $("aimodal").classList.remove("show"); unlockThen = null; });
 $("aiform").addEventListener("submit", async e => {
   e.preventDefault();
@@ -849,7 +1377,8 @@ $("aiform").addEventListener("submit", async e => {
   }
 });
 // Everything the server needs besides the OD pair: weights, hard constraints, chosen tags, tags to avoid.
-const weightParams = () => ({ ...state.weights, avoid_steps: state.avoid_steps ? 1 : 0, tags: presetTags().join(","), avoid_tags: state.avoid.join(","), user_id: userId });
+const weightParams = () => ({ ...state.weights, avoid_steps: state.avoid_steps ? 1 : 0, tags: presetTags().join(","), avoid_tags: state.avoid.join(","), user_id: userId,
+  ...(state.waypoints.length ? { waypoints: state.waypoints.map(w => `${w.latlng.lat.toFixed(6)},${w.latlng.lng.toFixed(6)}`).join(";"), keep_order: wpMode === "manual" ? 1 : 0 } : {}) });
 
 // ---------- onboarding flow ----------
 const STEP_NAMES = { stepM: "방식", stepA: "요청", step1: "용도", step2: "취향", step0: "환경", step3: "완료" };
@@ -885,7 +1414,7 @@ $("aigo").addEventListener("click", async () => {
   try {
     state.avoid = [];  // AI mode: the avoid list comes from the sentence
     const data = await interpret(text);
-    const places = [data.origin_name && `출발 ${data.origin_name}`, data.destination_name && `도착 ${data.destination_name}`].filter(Boolean).join(" → ");
+    const places = [data.origin_name && `출발 ${data.origin_name}`, data.waypoints?.length && `경유 ${data.waypoints.join(", ")}`, data.destination_name && `도착 ${data.destination_name}`].filter(Boolean).join(" → ");
     $("airesult").className = "result show"; $("airesult").innerHTML = `<b>${data.summary}</b>${weightsText()}${places ? `<br>${places}` : ""}`;
     setTimeout(finishOnboarding, 500);
   } catch (err) {
@@ -896,7 +1425,7 @@ $("aitext").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shift
 // Done step: summary of the picks + "save as default" / "use once".
 function finishOnboarding() {
   const rows = state.mode === "ai"
-    ? [["💬", "요청", state.ai.text], ["✨", "해석", state.ai.summary], ["⚖️", "가중치", weightsText()], ...(state.ai.origin_name || state.ai.destination_name ? [["📍", "장소", [state.ai.origin_name && `출발 ${state.ai.origin_name}`, state.ai.destination_name && `도착 ${state.ai.destination_name}`].filter(Boolean).join(" → ")]] : [])]
+    ? [["💬", "요청", state.ai.text], ["✨", "해석", state.ai.summary], ["⚖️", "가중치", weightsText()], ...(state.ai.origin_name || state.ai.destination_name || state.ai.waypoints?.length ? [["📍", "장소", [state.ai.origin_name && `출발 ${state.ai.origin_name}`, state.ai.waypoints?.length && `경유 ${state.ai.waypoints.join(", ")}`, state.ai.destination_name && `도착 ${state.ai.destination_name}`].filter(Boolean).join(" → ")]] : [])]
     : [[state.purpose.emoji, "용도", state.purpose.name], ["🚫", "불편한 환경", state.avoid.length ? state.avoid.join(" · ") : "따로 없음"]];
   if (state.mode !== "ai" && state.subs.length) rows.splice(1, 0, ["🎯", "취향", state.subs.map(s => `${s.emoji} ${s.name}`).join(" · ")]);
   $("summary").innerHTML = rows.map(([e, k, v]) => `<div class="row"><span class="e">${e}</span><span><div class="k">${k}</div><div class="v">${v}</div></span></div>`).join("");
@@ -911,7 +1440,7 @@ function commitOnboarding(asDefault) {
   else { writePrefs(sessionStorage, SESSION_KEY); state.source = "once"; }
   applyState();
   $("onboard").classList.remove("show");
-  if (state.mode === "ai" && (state.ai?.origin_name || state.ai?.destination_name)) {
+  if (state.mode === "ai" && (state.ai?.origin_name || state.ai?.destination_name || state.ai?.waypoints?.length)) {
     openSheet();
     applyPlaces(state.ai).then(placed => { if (placed.length) { clearRoutes(); findRoutes(); } });
   } else if (!current) openSheet(true);
@@ -985,20 +1514,77 @@ document.addEventListener("click", e => { if (!e.target.closest("#prefwrap")) { 
 $("prefbtn").addEventListener("click", () => $("acctmenu").classList.remove("show"));
 
 // ---------- bottom sheet ----------
-function openSheet(focus = false) { $("sheet").classList.remove("peek"); $("sheet").classList.add("open"); $("sheetclose").textContent = "지도 보기 ▾"; if (focus) setTimeout(() => $("oq").focus(), 350); }
-function peekSheet() { $("sheet").classList.remove("open"); $("sheet").classList.add("peek"); $("sheetclose").textContent = "펼치기 ▴"; }
+// Sheet has three positions on phones: peek (handle only) / half (map + cards) / open (full). Desktop: peek / open.
+const isPhone = () => window.innerWidth <= 760;
+function setSheet(mode) {
+  if (mode === "half" && !isPhone()) mode = "open";
+  const el = $("sheet"); el.classList.remove("peek", "half", "open"); el.classList.add(mode);
+  $("sheetclose").textContent = mode === "peek" ? "펼치기 ▴" : mode === "half" ? "더 보기 ▴" : "지도 보기 ▾";
+}
+const sheetMode = () => ["peek", "half", "open"].find(m => $("sheet").classList.contains(m)) || "peek";
+function openSheet(focus = false) { setSheet("open"); if (focus) setTimeout(() => $("oq").focus(), 350); }
+function halfSheet() { setSheet("half"); }
+function peekSheet() { setSheet("peek"); }
+// Map padding that keeps the routes clear of the sheet in its current position.
+function mapPad() {
+  if (!isPhone()) return { paddingTopLeft: [460, 80], paddingBottomRight: [40, 40] };
+  const m = sheetMode(), bottom = m === "half" ? Math.round(window.innerHeight * 0.42) + 20 : m === "open" ? 120 : 76;
+  return { paddingTopLeft: [40, 80], paddingBottomRight: [40, bottom] };
+}
 $("searchbtn").addEventListener("click", () => openSheet(true));
-$("sheetclose").addEventListener("click", e => { e.stopPropagation(); peekSheet(); });
-$("grab").addEventListener("click", () => ($("sheet").classList.contains("open") ? peekSheet() : openSheet()));
+// The handle and its button move the sheet one step the way the button's label says:
+//   peek "펼치기 ▴" -> half (phone with results) or open   half "더 보기 ▴" -> open   open "지도 보기 ▾" -> peek
+function cycleSheet() { const m = sheetMode(); if (m === "open") peekSheet(); else if (m === "half") openSheet(); else (current && isPhone() ? halfSheet() : openSheet()); }
+$("sheetclose").addEventListener("click", e => { e.stopPropagation(); cycleSheet(); });
+// Handle gestures: swipe up = one step higher (peek -> half -> open), swipe down = one step lower, tap = cycle.
+const SHEET_ORDER = ["peek", "half", "open"];
+function stepSheet(dir) {
+  const order = isPhone() && current ? SHEET_ORDER : ["peek", "open"];
+  const i = order.indexOf(sheetMode()); const next = order[Math.max(0, Math.min(order.length - 1, (i < 0 ? 0 : i) + dir))];
+  setSheet(next);
+}
+(() => {
+  const grab = $("grab"); let start = null, moved = false;
+  grab.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; start = { y: e.clientY, t: Date.now() }; moved = false; grab.setPointerCapture?.(e.pointerId); });
+  grab.addEventListener("pointermove", e => {
+    if (!start) return;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dy) > 8) moved = true;
+    $("sheet").classList.add("dragging"); $("sheet").style.setProperty("--drag", `${Math.max(-24, Math.min(24, dy * 0.25))}px`);  // light follow while deciding
+  });
+  const end = e => {
+    if (!start) return;
+    const dy = e.clientY - start.y, dt = Date.now() - start.t; start = null;
+    $("sheet").classList.remove("dragging"); $("sheet").style.removeProperty("--drag");  // back to the class-driven position
+    if (moved && (Math.abs(dy) > 40 || (Math.abs(dy) > 16 && dt < 250))) stepSheet(dy < 0 ? 1 : -1);
+    else if (!moved) cycleSheet();
+  };
+  grab.addEventListener("pointerup", end); grab.addEventListener("pointercancel", () => { start = null; $("sheet").classList.remove("dragging"); $("sheet").style.removeProperty("--drag"); });
+})();
 function updateSearchLabel() {
-  $("searchlabel").innerHTML = current ? `${points.o.name || "출발"} → ${points.d.name || "도착"} <small>· ${labelFor(0)} ${minutes(current.features[0].properties.length_m)}분</small>` : "어디로 갈까요?";
-  $("sheettitle").innerHTML = current ? `추천 경로 <small>${current.features.length}개</small>` : "경로 찾기";
+  $("searchlabel").innerHTML = current ? `${points.o.name || "출발"}${state.waypoints.length ? ` → 경유 ${state.waypoints.length}` : ""} → ${points.d.name || "도착"} <small>· ${labelFor(0)} ${minutes(current.features[0].properties.length_m)}분</small>` : "어디로 갈까요?";
+  $("odtext").innerHTML = `${points.o.name || "출발"} → ${points.d.name || "도착"}${state.waypoints.length ? ` <small>· 경유 ${state.waypoints.length}</small>` : ""}`;
+  const shown = current ? current.features.filter(f => f.properties.duplicate_of == null).length : 0;  // same filter as render()
+  $("sheettitle").innerHTML = current ? `추천 경로 <small>${shown}개</small>` : "경로 탐색";
 }
 
 // ---------- map ----------
-const map = L.map("map", { zoomControl: false }).setView(CENTER, 15);
+// Touch devices have no hover: skip per-segment tooltips / hover handlers there (each one is extra DOM and work per tap).
+const IS_TOUCH = window.matchMedia("(hover: none)").matches || navigator.maxTouchPoints > 0 && window.innerWidth <= 760;
+// Canvas renderer: routes (3 lines x segments x routes) become one <canvas> draw instead of hundreds of SVG paths that
+// the browser re-transforms on every pan / pinch. padding keeps lines drawn slightly outside the view while dragging.
+const map = L.map("map", { zoomControl: false, tapTolerance: 20, ...(IS_TOUCH ? { preferCanvas: true, renderer: L.canvas({ padding: 0.5 }) } : {}) }).setView(CENTER, 15);  // desktop keeps SVG (hover blink uses path elements)
 L.control.zoom({ position: "bottomright" }).addTo(map);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19 }).addTo(map);
+// Base map: VWorld (국토교통부, Korean labels) once /api/status hands over VWORLD_API_KEY; Carto Voyager until then / without a key.
+const TILES = {
+  carto: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>', opts: { subdomains: "abcd", maxZoom: 20 } },
+  vworld: { url: "https://api.vworld.kr/req/wmts/1.0.0/{key}/Base/{z}/{y}/{x}.png", attr: '&copy; <a href="https://www.vworld.kr">VWorld</a> 국토교통부', opts: { maxZoom: 19, detectRetina: true } },  // retina: Leaflet fetches z+1 tiles and shows them at half size
+};
+let TILE_URL = TILES.carto.url, TILE_OPTS = { ...TILES.carto.opts, tileSize: 256, zoomOffset: 0 };
+let baseTiles = L.tileLayer(TILE_URL, {
+  attribution: TILES.carto.attr, ...TILE_OPTS,
+  updateWhenIdle: IS_TOUCH, updateWhenZooming: false, keepBuffer: IS_TOUCH ? 3 : 2,  // phones: fetch tiles after the gesture, not during it
+}).addTo(map);
 L.circle(CENTER, { radius: RADIUS_M, color: "#71717a", weight: 1, dashArray: "4 6", fill: false, interactive: false }).addTo(map);
 const routeLayer = L.layerGroup().addTo(map);
 const hitLayer = L.layerGroup().addTo(map);  // transparent click targets, always above the drawn routes
@@ -1022,12 +1608,19 @@ for (const key of ["o", "d"]) {
   $(key + "q").value = points[key].name;
   updateMeta(key);
 }
+const pointsSet = { o: false, d: false };  // false = still the built-in default (경복궁 / 명동), never chosen by the user
 function setPoint(key, latlng, name, reverse = false) {
+  pointsSet[key] = true;
   points[key] = { latlng: L.latLng(latlng), name };
   markers[key].setLatLng(latlng);
   if (name) $(key + "q").value = name;
   updateMeta(key);
   if (reverse) reverseGeocode(key);
+  if (pendingSearch && pointsSet.o && pointsSet.d && !pickQueue.length) {  // the AI chooser was waiting for this point
+    pendingSearch = false; $("askhint").className = "";
+    if (isPhone()) halfOrOpen(); else openSheet();
+    findRoutes();
+  }
 }
 function updateMeta(key) {
   const p = points[key];
@@ -1038,30 +1631,150 @@ function updateMeta(key) {
 let pickTarget = "o";
 const pickButtons = [...document.querySelectorAll(".pick[data-key]")];  // not the GPS button
 function setPick(key) { pickTarget = key; pickButtons.forEach(b => b.classList.toggle("active", b.dataset.key === key)); }
-pickButtons.forEach(b => b.addEventListener("click", () => setPick(b.dataset.key)));
+pickButtons.forEach(b => b.addEventListener("click", () => {
+  setPick(b.dataset.key);
+  picking = true; pickButtons.forEach(x => x.classList.toggle("armed", x === b));
+  if (isPhone()) peekSheet();  // get the sheet out of the way so the map can be tapped
+  showToast(`지도에서 ${b.dataset.key === "o" ? "출발지" : "도착지"} 위치를 탭하세요`, { ms: 8000, action: { label: "취소", onClick: () => { picking = false; pickButtons.forEach(x => x.classList.remove("armed")); if (isPhone()) halfOrOpen(); } } });
+}));
 setPick("o");
 // Map clicks set origin/destination only while no routes are shown; with routes, edit the search fields instead.
-map.on("click", e => { if (current || !$("sheet").classList.contains("open")) return; setPoint(pickTarget, e.latlng, null, true); if (pickTarget === "o") setPick("d"); });
+// Map tap: waypoint mode adds a stop; "지도 클릭" mode places the armed point; otherwise on phones the tap just tucks
+// the sheet away (peek) so the map can be seen - the handle brings it back. Desktop keeps the old direct pick.
+let picking = false;  // armed by a "지도 클릭" button: the next map tap sets that point
+map.on("click", e => {
+  if (wpAdding) { addWaypoint(e.latlng, null, true); return; }
+  if (picking) {
+    const key = pickTarget;
+    picking = false; pickButtons.forEach(b => b.classList.remove("armed")); hideToast();
+    if (pickQueue.length) { const next = pickQueue.shift(); setPoint(key, e.latlng, null, true); armPick(next); return; }  // AI chooser: next missing point
+    setPoint(key, e.latlng, null, true);
+    if (pendingSearch === false && current) { findRoutes(); return; }  // routes shown: the new point re-runs the search
+    if (key === "o") setPick("d");
+    if (isPhone()) halfOrOpen(); else openSheet();
+    return;
+  }
+  if (isPhone()) { if (sheetMode() !== "peek") peekSheet(); return; }
+  if (current || !$("sheet").classList.contains("open")) return;
+  setPoint(pickTarget, e.latlng, null, true); if (pickTarget === "o") setPick("d");
+});
+const halfOrOpen = () => (current ? halfSheet() : openSheet());
+
+// ---------- waypoints: list (drag to reorder), markers, search ----------
+let wpAdding = false;
+let wpMode = "auto";  // "auto": server solves the visiting order (TSP) | "manual": the list order is the route order
+const wpLayer = L.layerGroup().addTo(map);
+function setWpMode(mode) {
+  wpMode = mode;
+  document.querySelectorAll("#wpmode button").forEach(b => b.classList.toggle("on", b.dataset.mode === mode));
+  $("wplist").classList.toggle("manual", mode === "manual");
+  $("wpmodehint").textContent = mode === "manual" ? "경유지를 드래그하거나 화살표를 눌러 방문 순서를 변경할 수 있어요" : "가장 짧게 도는 방문 순서를 자동으로 설정합니다. 목록 순서는 상관없습니다.";
+  renderWaypoints();
+}
+document.querySelectorAll("#wpmode button").forEach(b => b.addEventListener("click", () => setWpMode(b.dataset.mode)));
+const wpIcon = (n, visit) => L.divIcon({ className: "", html: `<div class="wp-pin${visit != null ? " visit" : ""}" title="경유지 ${n}">${visit != null ? visit : n}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] });
+function setWpAdding(on) {
+  if (on && state.waypoints.length >= 6) { showError("경유지는 최대 6개까지 추가할 수 있어요."); return; }
+  wpAdding = on;
+  $("wpadd").classList.toggle("on", on); $("wpadd").textContent = on ? "✓ 추가 종료" : "＋ 경유지 추가";
+  $("wpsearch").classList.toggle("show", on);
+  map.getContainer().style.cursor = on ? "crosshair" : "";
+  if (on) { openSheet(); setTimeout(() => $("wpq").focus(), 100); }
+}
+$("wpadd").addEventListener("click", () => setWpAdding(!wpAdding));
+function addWaypoint(latlng, name, reverse = false) {
+  if (state.waypoints.length >= 6) { showError("경유지는 최대 6개까지 추가할 수 있어요."); setWpAdding(false); return; }
+  if (map.distance(latlng, CENTER) > RADIUS_M) { showError("경유지가 서비스 범위(광화문 2 km) 밖이에요."); return; }
+  const wp = { latlng: L.latLng(latlng), name: name || `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}` };
+  state.waypoints.push(wp);
+  if (reverse) nominatim("reverse", { lat: wp.latlng.lat, lon: wp.latlng.lng, zoom: 18 }).then(hit => { const a = hit.address || {}; wp.name = a.amenity || a.building || a.shop || a.tourism || a.road || hit.name || wp.name; renderWaypoints(); }).catch(() => {});
+  if (state.waypoints.length >= 6) setWpAdding(false);
+  renderWaypoints();
+}
+function renderWaypoints(visitOrder = null) {
+  const list = $("wplist"); list.innerHTML = "";
+  wpLayer.clearLayers();
+  $("wpcount").textContent = state.waypoints.length;
+  $("wpfoot").hidden = $("wpmode").hidden = $("wpmodehint").hidden = !state.waypoints.length;
+  $("wpfootnote").textContent = wpMode === "manual" ? "" : "최적 순서로";
+  $("wpadd").disabled = state.waypoints.length >= 6 && !wpAdding;
+  const visitOf = i => visitOrder ? visitOrder.indexOf(i) + 1 || null : null;  // server's visit position (1-based) for input index i
+  state.waypoints.forEach((wp, i) => {
+    const li = document.createElement("li"); li.draggable = wpMode === "manual"; li.dataset.i = i;
+    const visit = visitOf(i);
+    li.innerHTML = `<span class="grip" title="드래그해서 순서 변경">⋮⋮</span><span class="n">${i + 1}</span><span class="name">${wp.name}${visit && visit !== i + 1 ? ` <small>· ${visit}번째 방문</small>` : ""}</span><span class="mv"><button type="button" data-d="-1" title="위로">▲</button><button type="button" data-d="1" title="아래로">▼</button></span><button type="button" class="x" title="삭제">×</button>`;
+    li.querySelector(".x").addEventListener("click", () => { state.waypoints.splice(i, 1); renderWaypoints(); });
+    li.querySelectorAll(".mv button").forEach(b => b.addEventListener("click", () => moveWaypoint(i, i + +b.dataset.d)));
+    li.addEventListener("dragstart", e => { if (wpMode !== "manual") { e.preventDefault(); return; } li.classList.add("dragging"); e.dataTransfer.setData("text/plain", String(i)); e.dataTransfer.effectAllowed = "move"; });
+    li.addEventListener("dragend", () => li.classList.remove("dragging"));
+    li.addEventListener("dragover", e => { e.preventDefault(); li.classList.add("over"); });
+    li.addEventListener("dragleave", () => li.classList.remove("over"));
+    li.addEventListener("drop", e => { e.preventDefault(); li.classList.remove("over"); moveWaypoint(+e.dataTransfer.getData("text/plain"), i); });
+    list.appendChild(li);
+    const m = L.marker(wp.latlng, { draggable: true, icon: wpIcon(i + 1, visit && visit !== i + 1 ? visit : null), title: `경유지 ${i + 1}` }).addTo(wpLayer);
+    m.bindTooltip(`경유지 ${i + 1} · ${wp.name}`, { direction: "top", offset: [0, -10] });
+    m.on("dragend", () => { wp.latlng = m.getLatLng(); wp.name = `${wp.latlng.lat.toFixed(5)}, ${wp.latlng.lng.toFixed(5)}`; renderWaypoints(); });
+  });
+}
+function moveWaypoint(from, to) {
+  if (to < 0 || to >= state.waypoints.length || from === to) return;
+  const [wp] = state.waypoints.splice(from, 1); state.waypoints.splice(to, 0, wp);
+  renderWaypoints();
+}
+$("wpgo").addEventListener("click", () => { setWpAdding(false); findRoutes(); });
+// waypoint search box: same Nominatim flow as origin/destination
+$("wpq").addEventListener("keydown", async e => {
+  if (e.key === "Escape") { $("wpres").innerHTML = ""; return; }
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const q = $("wpq").value.trim(), box = $("wpres"); if (!q) return;
+  const coords = parseCoords(q);
+  if (coords) { addWaypoint(coords, null, true); $("wpq").value = ""; return; }
+  box.innerHTML = '<div class="none">검색 중…</div>';
+  try {
+    const hits = await nominatim("search", { q, limit: 6, countrycodes: "kr", viewbox: VIEWBOX, bounded: 0 });
+    box.innerHTML = hits.length ? "" : '<div class="none">결과가 없습니다</div>';
+    for (const h of hits) {
+      const row = document.createElement("div"), title = document.createElement("strong"), sub = document.createElement("span");
+      title.textContent = h.name || h.display_name.split(",")[0]; sub.textContent = h.display_name; row.append(title, sub);
+      row.addEventListener("mousedown", ev => { ev.preventDefault(); addWaypoint([+h.lat, +h.lon], h.name || h.display_name.split(",")[0]); box.innerHTML = ""; $("wpq").value = ""; });
+      box.appendChild(row);
+    }
+  } catch (err) { box.innerHTML = `<div class="none">${err.message}</div>`; }
+});
+$("wpq").addEventListener("blur", () => setTimeout(() => ($("wpres").innerHTML = ""), 150));
 function syncPickButtons() {
-  pickButtons.forEach(b => { b.disabled = !!current; b.title = current ? "경로가 표시된 동안은 지도 클릭이 꺼져요. 검색창에서 수정하거나 경로를 지우세요." : ""; b.textContent = current ? "지도 클릭 꺼짐" : "지도 클릭"; });
+  // Always available: with routes shown, a map pick re-runs the search with the new point.
+  pickButtons.forEach(b => { b.disabled = false; b.title = current ? "지도에서 새 위치를 탭하면 그 위치로 다시 탐색해요" : ""; b.textContent = "지도 클릭"; });
 }
 function clearRoutes() {
+  destroyThumbs();
+  clearPois();
+  closeReviewList(false); closeReviewPage(); closeReviewFloat(false);
   map.closePopup();
   if (detailRank != null) { detailRank = null; document.body.classList.remove("detail"); }
   routeLayer.clearLayers(); hitLayer.clearLayers(); focusLayer.clearLayers(); stepLayer.clearLayers(); activeStep = null; lines = []; ghosts = []; R.length = 0; current = null; focusedRank = null; hoverRank = null;
-  $("routes").hidden = true; $("cards").innerHTML = ""; $("compare").innerHTML = ""; $("total").textContent = "";
+  $("routes").hidden = true; $("cards").innerHTML = "";
+  $("inputs").classList.remove("collapsed"); hideToast();
   updateSearchLabel(); syncPickButtons(); setPick("o");
+  if (isPhone()) openSheet();
 }
+// ✎ 수정 on the summary chip: bring the form back above the cards (a new search folds it again).
+$("odedit").addEventListener("click", () => { $("inputs").classList.remove("collapsed"); openSheet(); $("sheet").querySelector(".body").scrollTo({ top: 0, behavior: "smooth" }); });
 $("clearroutes").addEventListener("click", clearRoutes);
 // 📍 내 위치: browser geolocation -> origin marker + reverse-geocoded address.
 // ---------- GPS: opt-in setting (account menu), blue dot + origin ----------
 const GPS_KEY = "walkroute.gps";
 let gpsOn = false, gpsWatch = null, meDot = null, meRing = null, lastFix = null, gpsOriginSet = false;
-const gpsError = err => err.code === err.PERMISSION_DENIED ? "위치 권한을 허용해주세요 (브라우저 주소창의 위치 아이콘에서 변경할 수 있어요)."
+const gpsError = err => err.code === err.PERMISSION_DENIED ? "브라우저 설정을 통해 위치 권한을 허용해주세요."
   : err.code === err.TIMEOUT ? "위치를 가져오는 데 시간이 너무 걸려요. 다시 시도해주세요."
   : "현재 위치를 확인할 수 없어요. 검색이나 지도 클릭으로 출발지를 정해주세요.";
 const gpsUnavailable = () => !navigator.geolocation ? "이 브라우저는 위치 기능을 지원하지 않아요." : !window.isSecureContext ? "위치 기능은 https 또는 localhost에서만 동작해요." : "";
-function warnOrigin(msg) { const meta = $("ometa"); meta.textContent = msg; meta.classList.add("warn"); }
+// GPS-related warning under the origin field. Shown only while 위치 사용 is ON: with the setting off, the
+// origin comes from search / map click and location problems are none of the user's concern.
+function warnOrigin(msg) { if (!gpsOn) return; const meta = $("ometa"); meta.textContent = msg; meta.classList.add("warn"); }
+function clearOriginWarn() { const meta = $("ometa"); if (meta.classList.contains("warn")) updateMeta("o"); }
+const ORIGIN_PLACEHOLDER = { on: "출발지 검색 — 예: 경복궁, 또는 37.579, 126.977", off: "출발지를 직접 입력하거나 지도를 클릭해주세요" };
 function useFixAsOrigin(fix, pan = true) {
   if (current) clearRoutes();  // a new origin: drop the old routes so the map click gate reopens
   setPoint("o", [fix.lat, fix.lng], "내 위치", true);  // reverse geocode fills the address
@@ -1070,6 +1783,7 @@ function useFixAsOrigin(fix, pan = true) {
   if (fix.accuracy > 200) $("ometa").textContent += ` · 정확도 ±${Math.round(fix.accuracy)} m`;
 }
 function showMe(fix) {
+  if (!gpsOn) return;  // the setting is off: never draw the blue dot (a late fix must not bring it back)
   const ll = [fix.lat, fix.lng];
   if (!meDot) {
     meRing = L.circle(ll, { radius: fix.accuracy, color: "#2b7cff", weight: 1, opacity: .5, fillColor: "#2b7cff", fillOpacity: .08, interactive: false }).addTo(map);
@@ -1077,26 +1791,37 @@ function showMe(fix) {
   } else { meDot.setLatLng(ll); meRing.setLatLng(ll).setRadius(fix.accuracy); }
 }
 function hideMe() { meDot?.remove(); meRing?.remove(); meDot = meRing = null; }
+// Best-effort position watch. Permission / availability problems only change the hint text: the toggle itself is
+// purely the user's setting and never flips on its own (setGps owns it).
 function startGps() {
   const why = gpsUnavailable(); if (why) { warnOrigin(why); $("gpshint").textContent = why; return false; }
   if (gpsWatch != null) return true;
   gpsOriginSet = false;
-  gpsWatch = navigator.geolocation.watchPosition(pos => {
+  const id = navigator.geolocation.watchPosition(pos => {
+    if (!gpsOn || gpsWatch !== id) return;  // stale callback after the watch was cleared
     lastFix = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
     showMe(lastFix);
     if (!gpsOriginSet && !current) { gpsOriginSet = true; useFixAsOrigin(lastFix); }  // first fix becomes the origin
     $("gpshint").textContent = `현재 위치 표시 중 · 정확도 ±${Math.round(lastFix.accuracy)} m`;
-  }, err => { warnOrigin(gpsError(err)); $("gpshint").textContent = gpsError(err); if (err.code === err.PERMISSION_DENIED) setGps(false, true); },
-  { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+  }, err => {
+    if (!gpsOn || gpsWatch !== id) return;
+    warnOrigin(gpsError(err)); $("gpshint").textContent = gpsError(err);
+    if (err.code === err.PERMISSION_DENIED) { navigator.geolocation.clearWatch(id); gpsWatch = null; hideMe(); }  // stays ON; retried on the next toggle
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+  gpsWatch = id;
   return true;
 }
-function stopGps() { if (gpsWatch != null) navigator.geolocation.clearWatch(gpsWatch); gpsWatch = null; lastFix = null; hideMe(); }
+function stopGps() { if (gpsWatch != null) { try { navigator.geolocation.clearWatch(gpsWatch); } catch {} } gpsWatch = null; lastFix = null; hideMe(); }
+// The toggle always switches: OFF clears the watch and removes the blue dot no matter what; ON starts watching
+// (or just shows why it cannot, without flipping back).
 function setGps(on, keepHint = false) {
   gpsOn = !!on; storage.set(GPS_KEY, gpsOn ? "1" : "0");
   $("gpstoggle").classList.toggle("on", gpsOn);
+  $("gpstoggle").setAttribute("aria-checked", String(gpsOn));
   $("gps").hidden = !gpsOn;
-  if (!keepHint) $("gpshint").textContent = gpsOn ? "현재 위치를 지도에 표시하고 출발지로 써요" : "꺼짐 — 출발지는 검색이나 지도 클릭으로";
-  if (gpsOn) startGps(); else stopGps();
+  if (!keepHint) $("gpshint").textContent = gpsOn ? "현재 위치를 지도에 표시하고 출발지로 써요" : "꺼짐 — 출발지는 검색이나 지도 클릭으로 반영돼요";
+  $("oq").placeholder = gpsOn ? ORIGIN_PLACEHOLDER.on : ORIGIN_PLACEHOLDER.off;
+  if (gpsOn) startGps(); else { stopGps(); clearOriginWarn(); }  // OFF: no location warnings linger under the origin
 }
 $("gpstoggle").addEventListener("click", e => { e.stopPropagation(); setGps(!gpsOn); });
 // 📍 내 위치 (visible only with the setting on): use the latest fix, or fetch one now.
@@ -1195,10 +1920,27 @@ const odParams = () => ({ olat: points.o.latlng.lat, olon: points.o.latlng.lng, 
 const GOOD_TAGS = [["👥", "여러명 걷기 좋아요"], ["🚲", "자전거 도로 있어요"], ["📸", "인생샷 좋아요"], ["✨", "분위기 좋아요"], ["🧘", "한산해요"], ["🍽️", "맛집 많아요"], ["🛣️", "포장 좋아요"]];
 const BAD_TAGS = [["🚧", "공사중"], ["💨", "냄새"], ["🗑️", "더러움"], ["👻", "무서움"], ["😰", "좁고 답답함"], ["🚗", "차 많음"], ["🌑", "어두움"], ["👣", "사람 붐빔"], ["🧱", "포장 상태"]];
 const TAG_EMOJI = Object.fromEntries([...GOOD_TAGS, ...BAD_TAGS].map(([e, k]) => [k, e]));
-const QUICK = { meh: ["😐", 2], good: ["🙂", 6], love: ["😍", 10] };  // whole-route shortcut scores
+const starsHtml = () => `<span class="stars">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-n="${n}" title="${n}점">★</button>`).join("")}</span>`;
+// Whole-route star (1..5): posted as route_score; the server weights it 0.3x against segment reviews.
+function wireStars(box, row, p) {
+  const btns = [...box.querySelectorAll("button")];
+  const paint = n => btns.forEach(b => b.classList.toggle("hover", +b.dataset.n <= n));
+  btns.forEach(b => {
+    b.addEventListener("mouseenter", () => paint(+b.dataset.n));
+    b.addEventListener("mouseleave", () => paint(0));
+    b.addEventListener("click", async e => {
+      e.stopPropagation();
+      const n = +b.dataset.n;
+      btns.forEach(x => { x.disabled = true; x.classList.toggle("on", +x.dataset.n <= n); });
+      const ok = await submitReview({ edge_id: p.edges.map(x => x.join("-")).join(","), score: n * 2, route_score: n, good_tags: [], bad_tags: [], origin_name: points.o.name, destination_name: points.d.name }, `‘${labelFor(p.rank)}’ 경로 ★${n}`);
+      if (ok && row) row.querySelector("span").innerHTML = `<span class="done">★ ${n}점 남겼어요</span>`; else btns.forEach(x => (x.disabled = false));
+    });
+  });
+}
 const scoreColor = s => s == null ? null : s >= 8 ? "#16a34a" : s >= 4 ? "#eab308" : "#dc2626";
 const scoreBadge = (avg, n) => avg == null ? `<span class="score none">리뷰 없음</span>` : `<span class="score" style="background:${scoreColor(avg)}">${avg.toFixed(1)}<small>${n}건</small></span>`;
 const HIGHWAY_KO = { footway: "보도", path: "소로", pedestrian: "보행자도로", steps: "계단", living_street: "보행자우선도로", residential: "주택가 도로", service: "이면도로", unclassified: "일반도로", tertiary: "3차로", tertiary_link: "연결로", secondary: "2차로", secondary_link: "연결로", primary: "대로", primary_link: "연결로", cycleway: "자전거도로", track: "비포장길" };
+const PURPOSE_KO = { date: "데이트", solo: "혼자 산책", family: "가족 나들이", tour: "관광", fast: "빠르게 이동", ai: "AI 취향" };
 const segmentName = s => s.name || (s.highway || "").split("|").map(h => HIGHWAY_KO[h] || h).join("·") || "이름 없는 길";
 // hover: same hue a shade darker and slightly thicker (+blink); selected: darker still, full opacity
 const hoverStyle = color => ({ color: darken(color, 0.8), weight: LINE.hover, opacity: 1, dashArray: null, lineCap: "round" });
@@ -1268,6 +2010,7 @@ function openDetail(rank) {
   const p = f.properties, base = current.features[0].properties, color = COLORS[rank % COLORS.length];
   detailRank = rank; focusedRank = null; unfocusStep();
   document.body.classList.add("detail");
+  if (rvFloat) placeReviewFloat(null);  // detail open: the review panel moves to the top-right, clear of the panel
   R.forEach((x, i) => { if (x && i !== rank) hitLayer.removeLayer(x.hits); });  // other routes are not clickable while hidden
   $("dtitle").innerHTML = `<span class="sw" style="background:${color}"></span><b>${labelFor(rank)}</b><small>${km(p.length_m)} · 약 ${minutes(p.length_m)}분 · ${p.turn_by_turn.length - 1}단계</small>`;
   const road = st => st.kind === "crossing" || st.kind === "steps" || st.kind === "arrive" ? "" : (st.name || (st.highway || "").split("|").map(h => HIGHWAY_KO[h] || h).join("·") || "이름 없는 길");
@@ -1280,8 +2023,7 @@ function openDetail(rank) {
         ${seg ? `<div class="sub"><div class="tags">${seg.review_count ? "<span>태그 불러오는 중…</span>" : "<span>아직 리뷰가 없어요</span>"}</div><button type="button" class="rv-btn" data-n="${n}">✍️ 이 구간 리뷰 남기기</button></div>` : ""}</li>`;
     }).join("")}</ol>
     <h3>경로 전체 평가</h3>
-    <div class="quick" style="--c:${color}"><span>이 길 어땠나요?${p.review_score_avg != null ? ` · 구간 평균 <b>${p.review_score_avg.toFixed(1)}</b>` : ""}${p.reviewed_length_pct ? ` <small>· 리뷰 구간 ${fmt(p.reviewed_length_pct)}%</small>` : ""}</span>
-      ${Object.values(QUICK).map(([e, sc]) => `<button type="button" data-score="${sc}" title="${sc}점">${e}</button>`).join("")}</div>
+    <div class="quick rate" style="--c:${color}"><span>이 경로 전체 별점${p.review_score_avg != null ? ` · 구간 평균 <b>${p.review_score_avg.toFixed(1)}</b>` : ""}</span>${starsHtml()}</div>
     <h3>지표</h3>
     <div style="--c:${color}">
       ${metric("차량노출", p.vehicle_score_avg / 4, `${p.vehicle_score_avg.toFixed(2)}<small> /4</small>${pct(p.vehicle_score_avg, base.vehicle_score_avg)}`)}
@@ -1299,11 +2041,7 @@ function openDetail(rank) {
     });
     li.querySelector(".rv-btn")?.addEventListener("click", e => { e.stopPropagation(); const mid = seg.coordinates[Math.floor(seg.coordinates.length / 2)]; openReviewPopup([mid[1], mid[0]], seg, labelFor(rank), rank, n); });
   });
-  $("dbody").querySelectorAll(".quick button[data-score]").forEach(b => b.addEventListener("click", () => {
-    $("dbody").querySelectorAll(".quick button").forEach(x => (x.disabled = true));
-    submitReview({ edge_id: p.edges.map(x => x.join("-")).join(","), score: +b.dataset.score, good_tags: [], bad_tags: [] }, `‘${labelFor(rank)}’ 경로 전체`)
-      .then(ok => { if (!ok) $("dbody").querySelectorAll(".quick button").forEach(x => (x.disabled = false)); });
-  }));
+  wireStars($("dbody").querySelector(".quick .stars"), $("dbody").querySelector(".quick"), p);
   $("dbody").scrollTop = 0;
   restyleRoutes(); drawStepPins(rank);
   setTimeout(() => { map.invalidateSize(); map.fitBounds(r.group.getBounds(), detailPad()); }, 50);
@@ -1323,9 +2061,272 @@ function closeDetail() {
   R.forEach(x => { if (x && !hitLayer.hasLayer(x.hits)) hitLayer.addLayer(x.hits); });
   if (R[rank]) R[rank].steps = [];
   restyleRoutes();
-  setTimeout(() => { map.invalidateSize(); map.fitBounds(L.featureGroup(lines.filter(Boolean)).getBounds(), { paddingTopLeft: [window.innerWidth > 760 ? 460 : 40, 80], paddingBottomRight: [40, window.innerWidth > 760 ? 40 : 120] }); }, 50);
+  setTimeout(() => { map.invalidateSize(); map.fitBounds(L.featureGroup(lines.filter(Boolean)).getBounds(), mapPad()); }, 50);
 }
 $("dback").addEventListener("click", closeDetail);
+
+// ---------- ranking (/ranking): popular segments (streets) near the user, this week / month ----------
+let rankPeriod = "week";
+function openRanking() {
+  $("ranking").classList.add("show");
+  if (location.pathname !== "/ranking") history.pushState({ ranking: 1 }, "", "/ranking");
+  loadRanking();
+}
+function closeRanking() { $("ranking").classList.remove("show"); if (location.pathname === "/ranking") history.replaceState({}, "", "/"); }
+$("rankbtn").addEventListener("click", openRanking);
+$("rankclose").addEventListener("click", closeRanking);
+$("ranking").addEventListener("click", e => { if (e.target === $("ranking")) closeRanking(); });
+document.querySelectorAll("#ranking .tabs button").forEach(b => b.addEventListener("click", () => { rankPeriod = b.dataset.period; document.querySelectorAll("#ranking .tabs button").forEach(x => x.classList.toggle("on", x === b)); loadRanking(); }));
+window.addEventListener("popstate", () => { if (location.pathname === "/ranking") openRanking(); else $("ranking").classList.remove("show"); });
+async function loadRanking() {
+  const list = $("ranklist"); list.innerHTML = '<p class="empty">불러오는 중…</p>';
+  const center = lastFix ? [lastFix.lat, lastFix.lng] : [points.o.latlng.lat, points.o.latlng.lng];  // GPS if on, else the origin
+  $("ranklead").textContent = `${lastFix ? "현재 위치" : "출발지"} 기준 반경 2 km · 리뷰 3건 이상 구간 · ${rankPeriod === "week" ? "최근 7일" : "최근 30일"}`;
+  try {
+    const res = await api("/api/ranking?" + new URLSearchParams({ period: rankPeriod, lat: center[0], lon: center[1], radius: 2000 }));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    if (!Array.isArray(data.segments)) throw new Error("서버가 예전 버전이에요. server.py를 재시작해 주세요.");  // old server: {routes: [...]}
+    if (!data.segments.length) { list.innerHTML = `<p class="empty">아직 순위에 오른 구간이 없어요. 경로의 구간을 눌러 리뷰를 남기면 여기에 모여요 (구간당 ${data.min_reviews || 3}건부터).</p>`; return; }
+    list.innerHTML = "";
+    const pending = data.segments.filter(r => r.summary_pending).map(r => r.edge_id);
+    if (pending.length) pollSummaries(data.period, pending);
+    for (const r of data.segments) {
+      const card = document.createElement("div");
+      card.className = `rkcard top${Math.min(r.rank, 3)}`;
+      const bad = Object.keys(r.bad_tags || {}), good = Object.keys(r.good_tags || {}).slice(0, 3);
+      card.innerHTML = `<span class="rank">${r.rank}</span><span><div class="od">${r.name}</div>
+        <div class="meta"><b>★ ${r.stars.toFixed(1)}</b> · 리뷰 ${r.review_count}건 · ${r.highway_name || "길"} · ${segLen(r.length_m)}</div>
+        <div class="sum" data-edge="${r.edge_id}">${summaryHtml(r)}</div>
+        ${good.length || bad.length ? `<div class="tags">${good.map(t => `#${t}`).join(" ")}${bad.length ? ` <span style="color:#b91c1c">⚑ ${bad.join(" · ")}</span>` : ""}</div>` : ""}
+        <div class="acts"><button type="button" class="see">🗺 지도에서 보기</button><button type="button" class="via primary">🚩 경유지로 추가해 탐색</button></div></span>`;
+      card.querySelector(".see").addEventListener("click", () => showRankedSegment(r));
+      card.querySelector(".via").addEventListener("click", () => routeViaSegment(r));
+      list.appendChild(card);
+    }
+  } catch (err) { list.innerHTML = `<p class="empty">${err.message}</p>`; }
+}
+const segLen = m => m >= 1000 ? km(m) : `${fmt(m)} m`;
+// Summary line: the Claude one-liner when it exists, "요약 생성 중…" while the server is writing it, else the tag fallback.
+const summaryHtml = r => r.summary_pending ? `<span class="aitag">AI</span><span class="pending">요약 생성 중…</span> <small class="muted">${r.summary}</small>`
+  : r.summary_ai ? `<span class="aitag">AI</span>${r.summary}` : `<span class="aitag" style="background:#f4f4f5;color:#52525b">태그</span>${r.summary}`;
+// The ranking returns at once with pending summaries; poll POST /api/ranking/summaries and fill them in as they land.
+let summaryPoll = 0;
+async function pollSummaries(period, edgeIds) {
+  const seq = ++summaryPoll;
+  let waiting = [...edgeIds];
+  for (let i = 0; i < 20 && waiting.length; i++) {
+    await new Promise(r => setTimeout(r, i < 3 ? 1200 : 2500));
+    if (seq !== summaryPoll || !$("ranking").classList.contains("show") || rankPeriod !== period) return;
+    try {
+      const res = await api("/api/ranking/summaries", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ period, edge_ids: waiting }) });
+      const d = await res.json(); if (!res.ok) throw new Error(d.error || res.statusText);
+      for (const [edge, st] of Object.entries(d.summaries)) {
+        if (st.summary_pending) continue;
+        waiting = waiting.filter(e => e !== edge);
+        const el = document.querySelector(`#ranklist .sum[data-edge="${CSS.escape(edge)}"]`);
+        if (el && st.summary) el.innerHTML = summaryHtml({ summary: st.summary, summary_ai: st.summary_ai, summary_pending: false });
+        else if (el) el.querySelector(".pending")?.replaceWith(Object.assign(document.createElement("span"), { textContent: el.querySelector("small")?.textContent || "" }));
+      }
+    } catch { /* keep the fallback text */ }
+  }
+  // Timed out: drop the "생성 중" label and keep the tag fallback that is already there.
+  document.querySelectorAll("#ranklist .sum .pending").forEach(el => { const small = el.parentElement.querySelector("small"); el.parentElement.innerHTML = `<span class="aitag" style="background:#f4f4f5;color:#52525b">태그</span>${small ? small.textContent : ""}`; });
+}
+// "지도에서 보기": highlight the stretch on the map with a popup that can still add it as a waypoint.
+function showRankedSegment(r) {
+  closeRanking();
+  highlightSegment({ coordinates: r.coordinates });
+  const latlngs = r.coordinates.map(([lon, lat]) => [lat, lon]);
+  map.fitBounds(L.latLngBounds(latlngs), { paddingTopLeft: [window.innerWidth > 760 ? 460 : 40, 80], paddingBottomRight: [40, 120], maxZoom: 17 });
+  const pop = L.popup({ closeButton: true, autoPan: false }).setLatLng(r.midpoint).setContent(`<div class="rk-pop"><b>${r.rank}위 · ${r.name}</b>★ ${r.stars.toFixed(1)} · 리뷰 ${r.review_count}건 · ${segLen(r.length_m)}<div style="margin-top:8px"><button type="button" id="rkvia">🚩 경유지로 추가해 탐색</button></div></div>`).openOn(map);
+  pop.getElement()?.querySelector("#rkvia")?.addEventListener("click", () => { map.closePopup(); routeViaSegment(r); });
+  map.once("popupclose", () => focusLayer.clearLayers());
+}
+// "경유지로 추가해 탐색": the segment's midpoint becomes a waypoint and the search runs with the current origin/destination.
+function routeViaSegment(r) {
+  closeRanking();
+  const before = state.waypoints.length;
+  addWaypoint(r.midpoint, r.name);
+  if (state.waypoints.length === before) { openSheet(); return; }  // addWaypoint already showed why (limit / out of range)
+  setWpAdding(false);
+  openSheet();
+  findRoutes();
+}
+
+// ---------- POIs along a route (Kakao Local via GET /api/poi): one route at a time, off by default ----------
+const poiLayer = L.layerGroup().addTo(map);
+let poiRank = null, poiSeq = 0;
+const POI_KIND = { cafe: ["☕", "카페"], restaurant: ["🍽️", "음식점"], tourist: ["📸", "볼거리"] };
+function clearPois() { poiLayer.clearLayers(); poiRank = null; poiSeq++; document.querySelectorAll(".card .poi").forEach(b => { b.classList.remove("on"); if (!b.disabled) b.innerHTML = "📍 주변 둘러보기"; }); }
+async function togglePois(rank, feature, btn) {
+  if (poiRank === rank) { clearPois(); return; }  // second press hides the markers
+  clearPois();
+  poiRank = rank; const seq = poiSeq;
+  btn.classList.add("on"); btn.innerHTML = "📍 주변 찾는 중…";
+  try {
+    const params = { route_id: feature.properties.route_id || "", categories: "cafe,restaurant,tourist" };
+    let res = await api("/api/poi?" + new URLSearchParams(params));
+    let data = await res.json();
+    if (res.status === 404 && data.unknown_route) {  // server restarted since the search: send the line itself
+      res = await api("/api/poi?" + new URLSearchParams({ ...params, coords: feature.geometry.coordinates.map(([lon, lat]) => `${lon.toFixed(6)},${lat.toFixed(6)}`).join(";") }));
+      data = await res.json();
+    }
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    if (seq !== poiSeq || poiRank !== rank) return;  // toggled off meanwhile
+    for (const poi of data.pois) {
+      const [emoji, kind] = POI_KIND[poi.category] || ["📍", poi.category];
+      const m = L.marker([poi.y, poi.x], { icon: L.divIcon({ className: "", html: `<div class="poi-pin ${poi.category}"><span>${emoji}</span></div>`, iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26] }), title: poi.name, zIndexOffset: 700 }).addTo(poiLayer);
+      m.bindPopup(`<div class="poi-pop"><b>${emoji} ${poi.name.replace(/</g, "&lt;")}</b><small>${kind}${poi.category_name ? " · " + poi.category_name.split(" > ").slice(-1)[0] : ""}${poi.address ? "<br>" + poi.address : ""}${poi.distance_m ? ` · 경로에서 ${poi.distance_m} m` : ""}</small><a href="${poi.place_url}" target="_blank" rel="noopener">카카오맵에서 보기 ↗</a></div>`, { closeButton: false, offset: [0, -4] });
+      m.on("click", () => { m.openPopup(); });
+      m.on("dblclick", () => window.open(poi.place_url, "_blank", "noopener"));
+    }
+    const counts = Object.entries(POI_KIND).map(([k, [e]]) => { const n = data.pois.filter(pp => pp.category === k).length; return n ? `${e} ${n}` : ""; }).filter(Boolean).join(" · ");
+    btn.innerHTML = `📍 주변 둘러보기 <small>${data.pois.length ? counts + " · 다시 누르면 숨김" : "반경 150 m 안에 없어요"}</small>`;
+  } catch (err) {
+    showError(err.message);
+    if (poiRank === rank) clearPois();
+  }
+}
+
+// ---------- my reviews (account menu): everything I left, in two tabs ----------
+let myrvTab = "positive", myrvData = null;
+function openMyReviews() {
+  $("acctmenu").classList.remove("show");
+  if (!userId) { showLogin(); return; }
+  $("myrvttl").textContent = `내 리뷰 · ${userId}`; $("myrvsub").textContent = "불러오는 중…";
+  $("myrvlist").innerHTML = '<p class="empty">불러오는 중…</p>';
+  $("myrv").classList.add("show");
+  history.pushState({ myrv: 1 }, "");
+  loadMyReviews();
+}
+function closeMyReviews() { if (!$("myrv").classList.contains("show")) return; $("myrv").classList.remove("show"); if (history.state?.myrv) history.back(); }
+$("acctmyrv").addEventListener("click", e => { e.stopPropagation(); openMyReviews(); });
+$("myrvback").addEventListener("click", closeMyReviews);
+window.addEventListener("popstate", () => { if (!history.state?.myrv) $("myrv").classList.remove("show"); });
+document.querySelectorAll("#myrv .sorts button").forEach(b => b.addEventListener("click", () => { myrvTab = b.dataset.tab; document.querySelectorAll("#myrv .sorts button").forEach(x => x.classList.toggle("on", x === b)); renderMyReviews(); }));
+async function loadMyReviews() {
+  try {
+    const res = await api("/api/user/reviews?" + new URLSearchParams({ user_id: userId }));
+    const d = await res.json(); if (!res.ok) throw new Error(d.error || res.statusText);
+    myrvData = d;
+    $("myrvsub").textContent = `긍정 ${d.positive_count} · 신고 ${d.report_count}`;
+    document.querySelector('#myrv .sorts [data-tab="positive"]').textContent = `긍정 리뷰 ${d.positive_count}`;
+    document.querySelector('#myrv .sorts [data-tab="report"]').textContent = `신고 사항 ${d.report_count}`;
+    renderMyReviews();
+  } catch (err) { $("myrvlist").innerHTML = `<p class="empty">${err.message}</p>`; }
+}
+function renderMyReviews() {
+  const list = $("myrvlist"); if (!myrvData) return;
+  const rows = myrvData.entries.filter(e => myrvTab === "positive" ? e.positive : e.report);
+  $("myrvhint").textContent = myrvTab === "positive" ? "좋아요 태그를 남겼거나 6점 이상 준 리뷰" : "나쁜 점 태그·신고를 남겼거나 5점 이하 준 리뷰";
+  if (!rows.length) { list.innerHTML = `<p class="empty">${myrvTab === "positive" ? "아직 긍정 리뷰가 없어요. 경로의 구간을 눌러 리뷰를 남겨보세요." : "신고한 구간이 없어요."}</p>`; return; }
+  list.innerHTML = "";
+  for (const r of rows) {
+    const card = document.createElement("div"); card.className = "rc";
+    const tags = [...r.good_tags.map(t => `<span>${TAG_EMOJI[t] || ""} ${t}</span>`), ...r.bad_tags.map(t => `<span class="bad">${TAG_EMOJI[t] || "⚑"} ${t}</span>`)].join("");
+    const aitags = [...(r.ai_good_tags || []).map(t => `<span>${TAG_EMOJI[t] || ""} ${t}</span>`), ...(r.ai_bad_tags || []).map(t => `<span>${TAG_EMOJI[t] || "⚑"} ${t}</span>`)].join("");
+    const kind = r.type === "report" ? '<span class="kind report">⚑ 신고</span>' : r.type === "route" ? '<span class="kind">경로 별점</span>' : "";
+    const score = r.type === "report" ? "" : r.type === "route" ? `<div class="sc" style="color:#f59e0b">★${r.route_score}</div>` : `<div class="sc" style="color:${scoreColor(r.score)}">${r.score}<small style="font-size:11px;color:var(--muted)">/10</small></div>`;
+    card.innerHTML = `
+      <div class="head"><div class="who"><div class="seg">📍 ${r.segment_name.replace(/</g, "&lt;")} <small>· ${segLen(r.length_m)}</small></div><small>${ago(r.ts)} ${kind}</small></div>${score}</div>
+      ${tags ? `<div class="tags">${tags}</div>` : ""}
+      ${aitags ? `<div class="aitags"><span class="lbl">✨ AI가 글에서 추가</span>${aitags}</div>` : ""}
+      ${r.comment ? `<div class="txt">${r.comment.replace(/</g, "&lt;")}</div>` : ""}
+      ${r.photos.length ? `<div class="ph">${r.photos.map(u => `<a href="${u}" data-cap="${(r.ts || "").slice(0, 10)}"><img src="${u}" alt="" loading="lazy"></a>`).join("")}</div>` : ""}
+      <div class="foot"><span class="sp"></span>${r.coordinates.length ? '<button type="button" class="segbtn">🗺 지도에서 보기</button>' : ""}</div>`;
+    card.querySelectorAll(".ph a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); showLightbox(a.href, a.dataset.cap); }));
+    card.querySelector(".segbtn")?.addEventListener("click", () => {
+      closeMyReviews();
+      highlightSegment({ coordinates: r.coordinates });
+      map.fitBounds(L.latLngBounds(r.coordinates.map(([lon, lat]) => [lat, lon])), { paddingTopLeft: [window.innerWidth > 760 ? 460 : 40, 80], paddingBottomRight: [40, 120], maxZoom: 17 });
+      const mid = r.coordinates[Math.floor(r.coordinates.length / 2)];
+      L.popup({ closeButton: true, autoPan: false }).setLatLng([mid[1], mid[0]]).setContent(`<div class="rk-pop"><b>📍 ${r.segment_name.replace(/</g, "&lt;")}</b>내 ${r.type === "report" ? "신고" : "리뷰"} · ${ago(r.ts)}</div>`).openOn(map);
+      map.once("popupclose", () => focusLayer.clearLayers());
+    });
+    list.appendChild(card);
+  }
+}
+
+// ---------- street search -> review (no route needed): GET /api/segments/search ----------
+const segLayer = L.layerGroup().addTo(map);
+let segResults = [];
+function openSegSearch() { $("prefmenu").classList.remove("show"); $("acctmenu").classList.remove("show"); $("segsearch").classList.add("show"); setTimeout(() => $("segq").focus(), 80); }
+function closeSegSearch() { $("segsearch").classList.remove("show"); }
+$("segbtn").addEventListener("click", openSegSearch);
+$("sm-seg").addEventListener("click", () => { closeSideMenu(); openSegSearch(); });
+$("segclose").addEventListener("click", closeSegSearch);
+$("segsearch").addEventListener("click", e => { if (e.target === $("segsearch")) closeSegSearch(); });
+$("seggo").addEventListener("click", () => searchSegments($("segq").value.trim()));
+$("segq").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); searchSegments($("segq").value.trim()); } });
+async function searchSegments(q) {
+  const list = $("seglist"); if (!q) { $("segq").focus(); return; }
+  list.innerHTML = '<p class="empty">찾는 중…</p>';
+  try {
+    const res = await api("/api/segments/search?" + new URLSearchParams({ q, user_id: userId }));
+    const d = await res.json(); if (!res.ok) throw new Error(d.error || res.statusText);
+    segResults = d.segments;
+    segLayer.clearLayers();
+    if (!segResults.length) { list.innerHTML = `<p class="empty">‘${q.replace(/</g, "&lt;")}’와 맞는 길을 찾지 못했어요. 도로명 일부(예: 인사동)로 검색해 보세요.</p>`; return; }
+    list.innerHTML = "";
+    const bounds = [];
+    segResults.forEach((sg, n) => {
+      const latlngs = sg.coordinates.map(([lon, lat]) => [lat, lon]); bounds.push(...latlngs);
+      // every stretch drawn on the map (thin, numbered); clicking one starts its review
+      const line = L.polyline(latlngs, { color: "#7c3aed", weight: 5, opacity: .7, lineCap: "round" }).addTo(segLayer);
+      line.on("click", () => reviewSearchedSegment(n));
+      L.marker(latlngs[Math.floor(latlngs.length / 2)], { icon: L.divIcon({ className: "", html: `<div class="wp-pin" style="background:#7c3aed;border-color:#fff">${n + 1}</div>`, iconSize: [22, 22], iconAnchor: [11, 11] }), interactive: false }).addTo(segLayer);
+      const card = document.createElement("button"); card.type = "button"; card.className = "segcard" + (sg.danger ? " danger" : "");
+      card.innerHTML = `<span class="wp-pin" style="background:#7c3aed;border-color:#fff;position:static">${n + 1}</span><span class="nm">${sg.name.replace(/</g, "&lt;")} <small>· ${sg.highway_name || "길"}</small></span>
+        <span class="meta">${segLen(sg.length_m)}${sg.review_count ? ` · <b>★ ${sg.score_avg}</b> (${sg.review_count})` : " · 리뷰 없음"}</span>`;
+      card.addEventListener("click", () => reviewSearchedSegment(n));
+      list.appendChild(card);
+    });
+    map.fitBounds(L.latLngBounds(bounds), { paddingTopLeft: [40, 80], paddingBottomRight: [40, 120], maxZoom: 17 });
+  } catch (err) { list.innerHTML = `<p class="empty">${err.message}</p>`; }
+}
+// Open the normal review flow (popup on desktop, page on phones) for a searched stretch; rank -1 = not on a route.
+function reviewSearchedSegment(n) {
+  const sg = segResults[n]; if (!sg) return;
+  closeSegSearch();
+  if (isPhone()) peekSheet();
+  const mid = sg.coordinates[Math.floor(sg.coordinates.length / 2)];
+  map.setView([mid[1], mid[0]], Math.max(map.getZoom(), 16));
+  openReviewPopup([mid[1], mid[0]], sg, "길 검색", -1, 0);
+}
+
+// ---------- danger zones: 무서움/어두움 reports >= 3 on a stretch, shown only while the toggle is on ----------
+const dangerLayer = L.layerGroup();
+let dangerOn = false, dangerSeq = 0;
+const DANGER_STYLE = { color: "#dc2626", weight: 7, opacity: .55, dashArray: "1 12", lineCap: "round", interactive: false };
+async function loadDangerZones() {
+  const seq = ++dangerSeq;
+  $("dangerbtn").classList.add("loading");
+  try {
+    const center = lastFix ? [lastFix.lat, lastFix.lng] : [points.o.latlng.lat, points.o.latlng.lng];  // same reference point as the ranking
+    const res = await api("/api/danger-zones?" + new URLSearchParams({ lat: center[0], lon: center[1], radius: 2000 }));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    if (seq !== dangerSeq || !dangerOn) return;  // toggled off (or re-requested) while loading
+    dangerLayer.clearLayers();
+    for (const z of data.zones) {
+      for (const line of z.lines) L.polyline(line.map(([lon, lat]) => [lat, lon]), DANGER_STYLE).addTo(dangerLayer);
+      const tip = `<div class="danger-tip"><b>⚠️ ${z.name}</b> · ${z.highway_name || "길"} · ${segLen(z.length_m)}<br>👻 무서움 ${z.tags["무서움"] || 0}건 · 🌑 어두움 ${z.tags["어두움"] || 0}건${z.reporter_count ? ` · ${z.reporter_count}명 신고` : ""}<br><small>모든 경로에서 최대한 피해 가요</small></div>`;
+      L.marker(z.midpoint, { icon: L.divIcon({ className: "", html: '<div class="danger-pin">⚠️</div>', iconSize: [24, 24], iconAnchor: [12, 12] }), zIndexOffset: 900, title: z.name })
+        .bindTooltip(tip, { direction: "top", offset: [0, -12] }).addTo(dangerLayer);
+    }
+    $("dangerbtn").title = data.zones.length ? `위험 구간 ${data.zones.length}곳 (반경 2 km)` : "반경 2 km 안에 위험 신고 3건 이상 구간이 없어요";
+    if (!data.zones.length) showError("반경 2 km 안에 무서움·어두움 신고가 3건 이상 모인 구간이 아직 없어요.");
+  } catch (err) { showError(err.message); }
+  finally { $("dangerbtn").classList.remove("loading"); }
+}
+function setDanger(on) {
+  dangerOn = on;
+  $("dangerbtn").classList.toggle("on", on); $("dangerbtn").setAttribute("aria-pressed", String(on));
+  if (on) { dangerLayer.addTo(map); loadDangerZones(); }
+  else { map.removeLayer(dangerLayer); dangerLayer.clearLayers(); $("dangerbtn").title = "무서움·어두움 신고 3건 이상 구간"; }
+}
+$("dangerbtn").addEventListener("click", () => setDanger(!dangerOn));
 
 // ---- turn-by-turn steps: numbered pins for the focused route, one step highlighted on hover/click ----
 const stepLayer = L.layerGroup().addTo(map);
@@ -1366,7 +2367,7 @@ function focusRoute(rank) {
   unfocusStep();
   drawStepPins(focusedRank);
   restyleRoutes();
-  if (focusedRank != null) map.fitBounds(lines[rank].getBounds(), { paddingTopLeft: [window.innerWidth > 760 ? 460 : 40, 80], paddingBottomRight: [40, window.innerWidth > 760 ? 40 : 120] });
+  if (focusedRank != null) map.fitBounds(lines[rank].getBounds(), mapPad());
 }
 
 // ---------- routing ----------
@@ -1380,7 +2381,7 @@ async function findRoutes() {
   } catch (err) {
     showError(err.message);
   } finally {
-    $("go").disabled = false; $("go").textContent = "경로 찾기";
+    $("go").disabled = false; $("go").textContent = "경로 탐색";
   }
 }
 $("go").addEventListener("click", findRoutes);
@@ -1425,13 +2426,34 @@ function reasonFor(p, base) {
   return table[CANDIDATE_KEY[p.rank]](c);
 }
 
+// Mini Leaflet instance per card: this route only, origin/destination dots, no interaction.
+const miniMaps = [];
+function makeThumb(el, feature, color) {
+  const mini = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, tap: false });
+  L.tileLayer(TILE_URL, TILE_OPTS).addTo(mini);
+  const latlngs = feature.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+  L.polyline(latlngs, { color: "#fff", weight: 6, opacity: .9, lineCap: "round", lineJoin: "round" }).addTo(mini);
+  L.polyline(latlngs, { color, weight: 3, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(mini);
+  const dot = (ll, fill) => L.circleMarker(ll, { radius: 4, color: "#fff", weight: 1.5, fillColor: fill, fillOpacity: 1 }).addTo(mini);
+  dot(latlngs[0], "#16a34a"); dot(latlngs[latlngs.length - 1], "#dc2626");
+  (state.waypoints || []).forEach(w => L.circleMarker(w.latlng, { radius: 3.5, color: "#fff", weight: 1.5, fillColor: "#7c3aed", fillOpacity: 1 }).addTo(mini));
+  mini.fitBounds(L.latLngBounds(latlngs), { padding: [8, 8] });
+  setTimeout(() => { mini.invalidateSize(); mini.fitBounds(L.latLngBounds(latlngs), { padding: [8, 8] }); }, 60);  // the sheet may still be animating open
+  return mini;
+}
+function destroyThumbs() { miniMaps.splice(0).forEach(m => { try { m.remove(); } catch {} }); }
 function render(fc) {
+  destroyThumbs();
+  clearPois();
+  closeReviewFloat(false); segLayer.clearLayers();
   map.closePopup();
   if (detailRank != null) { detailRank = null; document.body.classList.remove("detail"); }
   routeLayer.clearLayers(); hitLayer.clearLayers(); focusLayer.clearLayers(); stepLayer.clearLayers(); activeStep = null; lines = []; ghosts = []; R.length = 0; current = fc; focusedRank = null; hoverRank = null;
   $("routes").hidden = false;
   $("cards").innerHTML = "";
-  $("total").textContent = [fc.reviews_total ? `리뷰 ${fc.reviews_total}건` : "", fc.negatives_total ? `신고 ${fc.negatives_total}건` : ""].filter(Boolean).join(" · ") + (fc.reviews_total || fc.negatives_total ? " 반영됨" : "") + (state.avoid.length ? ` · ${state.avoid.join("·")} 구간 제외 적용` : "");
+  $("inputs").classList.add("collapsed");  // results view: the form folds into the summary chip (✎ 수정 reopens it)
+  const applied = [fc.reviews_total ? `리뷰 ${fc.reviews_total}건` : "", fc.negatives_total ? `신고 ${fc.negatives_total}건` : ""].filter(Boolean).join(" · ") + (fc.reviews_total || fc.negatives_total ? " 반영됨" : "") + (state.avoid.length ? ` · ${state.avoid.join("·")} 구간 제외 적용` : "");
+  if (applied && !fc.cached) showToast(applied, { ms: 2500 });
   const base = fc.features[0].properties;
   // Duplicates (same edges as an earlier candidate) are dropped entirely; the rest are numbered in order.
   const visible = fc.features.filter(f => f.properties.duplicate_of == null);
@@ -1443,6 +2465,10 @@ function render(fc) {
       const latlngs = seg.coordinates.map(([lon, lat]) => [lat, lon]);
       if (seg.review_count) L.polyline(latlngs, { color: scoreColor(seg.score_avg), weight: 9, opacity: 0.45, lineCap: "round", interactive: false }).addTo(routeLayer);
       if (seg.negative_count && !seg.review_count) L.polyline(latlngs, REPORT_STYLE).addTo(routeLayer);
+      if (seg.danger) {  // >= 3 무서움/어두움 reports: server forces the maximum avoid penalty; flag it on the map
+        const mid = latlngs[Math.floor(latlngs.length / 2)];
+        L.marker(mid, { icon: L.divIcon({ className: "", html: '<div class="danger-pin" title="위험 신고 구간">⚠️</div>', iconSize: [24, 24], iconAnchor: [12, 12] }), interactive: false, zIndexOffset: 800 }).addTo(routeLayer);
+      }
     }
     // Each route is drawn twice: a white casing (line width + 4 px) underneath, the colour line on top.
     const casing = L.featureGroup().addTo(routeLayer), group = L.featureGroup().addTo(routeLayer), hits = L.featureGroup().addTo(hitLayer);
@@ -1455,14 +2481,17 @@ function render(fc) {
       // Invisible wide "hit" line (line width + 10 px each side) takes the mouse events, so thin
       // lines are easy to click and the click never reaches the map (bubblingMouseEvents: false).
       const hit = L.polyline(latlngs, { color: "#000", opacity: 0, weight: LINE.base + 20, lineCap: "round", bubblingMouseEvents: false }).addTo(r.hits);
-      hit.bindTooltip(segTooltip(labelFor(p.rank), seg), { sticky: true });
-      hit.on("mouseover", () => hoverSegment(p.rank, i, true));
-      hit.on("mouseout", () => hoverSegment(p.rank, i, false));
+      if (!IS_TOUCH) {  // hover affordances only on pointer devices
+        hit.bindTooltip(segTooltip(labelFor(p.rank), seg), { sticky: true });
+        hit.on("mouseover", () => hoverSegment(p.rank, i, true));
+        hit.on("mouseout", () => hoverSegment(p.rank, i, false));
+      }
       hit.on("click", e => { L.DomEvent.stopPropagation(e); L.DomEvent.stop(e.originalEvent); openReviewPopup(e.latlng, seg, labelFor(p.rank), p.rank, i); });
     });
     group._baseOpacity = style.opacity;
     lines[p.rank] = group;
   }
+  if (fc.visit_order) renderWaypoints(fc.visit_order);  // show the visiting order the server chose
   for (const [key, snapped] of [["o", fc.origin], ["d", fc.destination]]) {
     L.polyline([points[key].latlng, [snapped[1], snapped[0]]], { color: "#71717a", weight: 2, dashArray: "2 5", interactive: false }).addTo(routeLayer);
   }
@@ -1470,27 +2499,98 @@ function render(fc) {
     const p = f.properties, color = COLORS[p.rank % COLORS.length];
     const card = document.createElement("div");
     card.className = "card"; card.dataset.rank = p.rank; card.style.setProperty("--c", color); card.style.animationDelay = `${idx * 0.06}s`;
+    // Compact card (always): name + time/distance + one-line brief. Expanded (.xp, on tap): reason, notes, rating, actions.
     card.innerHTML = `
       <div class="head">
-        <span><span class="name">${labelFor(p.rank)}</span><span class="beta">β ${p.beta}</span><span class="focustag">선택됨</span></span>
-        <span class="len">${km(p.length_m)}<small>약 ${minutes(p.length_m)}분</small></span>
+        <span><span class="name">${labelFor(p.rank)}</span><span class="beta">β ${p.beta}</span><span class="focustag">선택됨</span><span class="chev">▾</span></span>
+        <span class="len">${minutes(p.length_m)}분<small>${km(p.length_m)}</small></span>
       </div>
-      <div class="why${p.rank > 0 && state.ai && aiActive() ? " loading" : ""}" data-rank="${p.rank}">${p.rank > 0 && state.ai && aiActive() ? "AI가 추천 이유를 정리하는 중…" : reasonFor(p, base)}</div>
-      ${fc.steps_fallback ? `<div class="note">계단 없이 연결되는 경로가 없어 계단 ${p.steps_count}곳을 포함해 산출했습니다.</div>` : fc.avoid_steps ? `<div class="note">계단 구간을 제외하고 산출했습니다.</div>` : ""}
-      <button type="button" class="open">자세히 보기 →</button>`;
+      <div class="brief">${briefFor(p, base, fc)}</div>
+      <div class="xp">
+        <div class="thumb"></div>
+        <div class="why${p.rank > 0 && state.ai && aiActive() ? " loading" : ""}" data-rank="${p.rank}">${p.rank > 0 && state.ai && aiActive() ? "AI가 추천 이유를 정리하는 중…" : reasonFor(p, base)}</div>
+        ${fc.steps_fallback ? `<div class="note">계단 없이 연결되는 경로가 없어 계단 ${p.steps_count}곳을 포함해 산출했습니다.</div>` : fc.avoid_steps ? `<div class="note">계단 구간을 제외하고 산출했습니다.</div>` : ""}
+        ${p.detour_m != null ? `<div class="wpnote">🚩 경유지 ${(fc.visit_order || []).length}곳 · 직행 대비 +${km(p.detour_m)} · +${p.detour_min}분${p.revisit_ratio > 0.005 ? ` · 같은 길 재방문 ${fmt(p.revisit_ratio * 100)}%` : ""}</div>` : ""}
+        <div class="rate"><span>이 경로 전체 별점</span>${starsHtml()}</div>
+        <button type="button" class="open">자세히 보기 →</button>
+        <button type="button" class="poi" ${API.kakao ? "" : 'disabled title="KAKAO_API_KEY가 없어 꺼져 있어요 (.env에 추가 후 서버 재시작)"'}>📍 주변 둘러보기${API.kakao ? "" : " <small>(카카오 키 없음)</small>"}</button>
+      </div>`;
+    card.querySelector(".poi").addEventListener("click", e => { e.stopPropagation(); togglePois(p.rank, f, e.currentTarget); });
+    wireStars(card.querySelector(".stars"), card.querySelector(".rate"), p);
     const r = R[p.rank];
-    Object.assign(r, { card, rows: [], steps: [], feature: f });
+    Object.assign(r, { card, rows: [], steps: [], feature: f, color });
     card.querySelector(".open").addEventListener("click", e => { e.stopPropagation(); openDetail(p.rank); });
-    card.addEventListener("mouseenter", () => highlight(p.rank, true));
-    card.addEventListener("mouseleave", () => highlight(p.rank, false));
-    card.addEventListener("click", () => focusRoute(p.rank));
+    card.querySelector(".xp").addEventListener("click", e => e.stopPropagation());  // interacting inside the expanded part does not collapse it
+    if (!IS_TOUCH) {
+      card.addEventListener("mouseenter", () => highlight(p.rank, true));
+      card.addEventListener("mouseleave", () => highlight(p.rank, false));
+    }
+    card.addEventListener("click", () => toggleCard(p.rank));
     $("cards").appendChild(card);
   });
   if (visible.length === 1) $("cards").insertAdjacentHTML("beforeend", '<p class="empty">이 구간에서는 더 나은 우회 경로가 없습니다.</p>');
   if (state.ai && aiActive() && visible.length > 1) requestExplanations(fc, visible, base);
   updateSearchLabel(); syncPickButtons();
-  openSheet();
-  map.fitBounds(L.featureGroup(lines.filter(Boolean)).getBounds(), { paddingTopLeft: [window.innerWidth > 760 ? 460 : 40, 80], paddingBottomRight: [40, window.innerWidth > 760 ? 40 : 120] });
+  if (isPhone()) halfSheet(); else openSheet();  // phones: map on top, compact cards below
+  scrollToRoutes();
+  map.fitBounds(L.featureGroup(lines.filter(Boolean)).getBounds(), mapPad());
+}
+// One-line brief for the compact card: what this route trades for the extra minutes, compared with the shortest.
+function briefFor(p, base, fc) {
+  const chips = [];
+  if (p.rank === 0) {
+    chips.push("가장 짧은 경로");
+    if (p.vehicle_score_avg >= 2.5) chips.push('<span class="warn">큰길 비중 높음</span>');
+    const reported = p.segments.filter(seg => seg.report_tags?.length).length;
+    if (reported) chips.push(`<span class="warn">신고 구간 ${reported}곳</span>`);
+    return chips.map(c => c.startsWith("<span") ? c : `<span>${c}</span>`).join("");
+  }
+  const extra = minutes(p.length_m) - minutes(base.length_m);
+  chips.push(extra >= 1 ? `+${extra}분` : "시간 거의 같음");
+  if (p.exposure_reduction_pct >= 10) chips.push(`<span class="good">차량 −${Math.round(p.exposure_reduction_pct)}%</span>`);
+  if (p.vibe_score_avg - base.vibe_score_avg >= 0.05) chips.push('<span class="good">분위기 좋음</span>');
+  if (p.trees_per_100m - base.trees_per_100m >= 2) chips.push('<span class="good">가로수 많음</span>');
+  if (base.park_distance_avg_m - p.park_distance_avg_m >= 50) chips.push('<span class="good">공원 가까움</span>');
+  const avoided = avoidedStretches(p, base);
+  if (avoided.reported.length) chips.push('<span class="good">신고 구간 회피</span>');
+  else if (avoided.lowScore.length) chips.push('<span class="good">저평가 구간 회피</span>');
+  if (fc.avoid_steps) chips.push("계단 없음");
+  if (chips.length === 1) chips.push("취향 반영 경로");
+  return chips.slice(0, 4).map(c => c.startsWith("<span") ? c : `<span>${c}</span>`).join("");
+}
+// Tap a compact card: expand it (collapsing the others) and focus its line on the map; tap again to collapse.
+function toggleCard(rank) {
+  const r = R[rank]; if (!r?.card) return;
+  const wasOpen = r.card.classList.contains("expanded");
+  document.querySelectorAll(".card.expanded").forEach(c => c.classList.remove("expanded"));
+  if (wasOpen) { if (focusedRank === rank) focusRoute(rank); return; }
+  r.card.classList.add("expanded");
+  if (!isPhone() && !r.thumb) {  // desktop thumbnail, created on first expand (Leaflet needs a visible box)
+    const el = r.card.querySelector(".thumb"); el.classList.add("ready");
+    requestAnimationFrame(() => { r.thumb = makeThumb(el, r.feature, r.color); miniMaps.push(r.thumb); });
+  }
+  if (focusedRank !== rank) focusRoute(rank);
+  requestAnimationFrame(() => r.card.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+}
+// Small transient message (replaces the old "리뷰 N건 반영됨" line and the review comparison box).
+let toastTimer = null;
+function showToast(html, { ms = 3500, action = null } = {}) {
+  const el = $("toast"); clearTimeout(toastTimer);
+  el.innerHTML = html + (action ? `<button type="button">${action.label}</button>` : "");
+  if (action) el.querySelector("button").addEventListener("click", () => { action.onClick?.(); hideToast(); });
+  el.classList.add("show");
+  if (ms) toastTimer = setTimeout(hideToast, ms);
+}
+function hideToast() { $("toast").classList.remove("show"); }
+// Bring the route cards into view once a search finishes: the sheet's .body is the scroll container, and the
+// sheet may still be sliding open, so wait a frame for layout before the smooth scroll.
+function scrollToRoutes() {
+  const body = $("sheet").querySelector(".body"), routes = $("routes");
+  if (!body || routes.hidden) return;
+  requestAnimationFrame(() => {
+    const top = routes.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop - 8;
+    body.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  });
 }
 
 // AI mode: ask Claude for a rationale per recommended route (the shortest keeps its local sentence).
@@ -1522,10 +2622,96 @@ async function requestExplanations(fc, visible, base) {
 }
 
 // ---------- review popup ----------
+// Review entry point: phones get a full-screen page (/review?edge_id=&route_id=), desktop keeps the map popup.
 function openReviewPopup(latlng, seg, routeLabel, rank, i) {
+  if (isPhone()) return openReviewPage(latlng, seg, routeLabel, rank, i);
+  openReviewFloat(latlng, seg, routeLabel, rank, i);
+}
+// ---- desktop: floating, draggable review panel (never hidden behind the detail panel or the side sheet) ----
+let rvFloat = null;  // { rank, box }
+const FLOAT_W = 340, FLOAT_MARGIN = 16, FLOAT_TOP = 70;
+function openReviewFloat(latlng, seg, routeLabel, rank, i) {
+  closeReviewFloat(false);
   setRouteSelected(rank, true, i);
   revealRow(rank, i);
   highlightSegment(seg);
+  const box = buildReviewForm(latlng, seg, routeLabel, rank, i, ok => { if (ok) closeReviewFloat(true); });
+  rvFloat = { rank, box };
+  $("rvfloatttl").textContent = `${segmentName(seg)} · ${routeLabel}`;
+  $("rvfloatbody").innerHTML = ""; $("rvfloatbody").appendChild(box); $("rvfloatbody").scrollTop = 0;
+  const el = $("rvfloat"); el.classList.add("show");
+  placeReviewFloat(latlng);
+}
+// Where the panel goes: top-right of the map while the detail panel is open; otherwise next to the tapped
+// segment, kept clear of the side sheet (left) and the top bar, and inside the viewport.
+function placeReviewFloat(latlng) {
+  const el = $("rvfloat"), W = window.innerWidth, H = window.innerHeight;
+  const h = Math.min(el.offsetHeight || 420, H - FLOAT_TOP - FLOAT_MARGIN);
+  let left, top;
+  if (detailRank != null) {
+    left = W - FLOAT_W - FLOAT_MARGIN; top = FLOAT_TOP;
+    el.style.maxHeight = `${Math.max(240, Math.round(H * 0.6) - FLOAT_TOP - FLOAT_MARGIN)}px`;  // above the 40 % detail panel
+  } else {
+    el.style.maxHeight = "";
+    const pt = map.latLngToContainerPoint(latlng);
+    const sheetRight = $("sheet").getBoundingClientRect().right;  // side sheet on desktop
+    left = pt.x + 24; if (left + FLOAT_W + FLOAT_MARGIN > W) left = pt.x - FLOAT_W - 24;
+    left = Math.max(sheetRight + 12, Math.min(left, W - FLOAT_W - FLOAT_MARGIN));
+    top = Math.max(FLOAT_TOP, Math.min(pt.y - 40, H - h - FLOAT_MARGIN));
+  }
+  el.style.left = `${Math.round(left)}px`; el.style.top = `${Math.round(top)}px`;
+}
+function closeReviewFloat(resetSelection = true) {
+  const el = $("rvfloat");
+  if (!el.classList.contains("show")) return;
+  el.classList.remove("show"); $("rvfloatbody").innerHTML = "";
+  const f = rvFloat; rvFloat = null;
+  highlightSegment(null);
+  if (resetSelection && f && !f.box._reporting && R[f.rank]?.selected) setRouteSelected(f.rank, false);
+}
+$("rvfloatclose").addEventListener("click", () => closeReviewFloat(true));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && rvFloat && !e.target.closest("textarea, input")) closeReviewFloat(true); });
+// drag by the header (pointer events: mouse + pen + touch)
+(() => {
+  const el = $("rvfloat"), head = $("rvfloathead"); let start = null;
+  head.addEventListener("pointerdown", e => {
+    if (e.target.closest("button")) return;
+    start = { x: e.clientX, y: e.clientY, left: el.offsetLeft, top: el.offsetTop }; head.setPointerCapture(e.pointerId); el.classList.add("dragging");
+  });
+  head.addEventListener("pointermove", e => {
+    if (!start) return;
+    const W = window.innerWidth, H = window.innerHeight;
+    el.style.left = `${Math.max(0, Math.min(start.left + e.clientX - start.x, W - 80))}px`;
+    el.style.top = `${Math.max(0, Math.min(start.top + e.clientY - start.y, H - 48))}px`;
+  });
+  const end = () => { start = null; el.classList.remove("dragging"); };
+  head.addEventListener("pointerup", end); head.addEventListener("pointercancel", end);
+})();
+// keep it on screen when the window resizes or the detail panel opens / closes
+window.addEventListener("resize", () => { if (rvFloat) { const el = $("rvfloat"); el.style.left = `${Math.min(el.offsetLeft, window.innerWidth - 80)}px`; el.style.top = `${Math.min(el.offsetTop, window.innerHeight - 48)}px`; } });
+let rvFormBack = null;  // what to restore when the phone review page closes
+function openReviewPage(latlng, seg, routeLabel, rank, i) {
+  const box = buildReviewForm(latlng, seg, routeLabel, rank, i, ok => { if (ok) closeReviewPage(); });
+  $("rvformttl").textContent = `리뷰 남기기 · ${segmentName(seg)}`;
+  $("rvformsub").textContent = `${routeLabel} · ${fmt(seg.length_m)}m`;
+  $("rvformbody").innerHTML = ""; $("rvformbody").appendChild(box);
+  $("rvform").classList.add("show"); $("rvformbody").scrollTop = 0;
+  rvFormBack = { rank, i };
+  const rid = current?.features.find(f => f.properties.rank === rank)?.properties.route_id || "";
+  if (!history.state?.rvform) history.pushState({ rvform: 1 }, "", `/review?${new URLSearchParams({ edge_id: seg.edge_id, route_id: rid })}`);
+}
+function closeReviewPage(viaHistory = true) {
+  if (!$("rvform").classList.contains("show")) return;
+  $("rvform").classList.remove("show"); $("rvformbody").innerHTML = "";
+  rvFormBack = null;
+  if (!history.state?.rvform) return;
+  if (viaHistory) history.back();  // popstate restores the previous URL (the detail view is still underneath)
+  else history.replaceState({}, "", "/");  // caller is about to push its own entry (review list)
+}
+$("rvformback").addEventListener("click", closeReviewPage);
+window.addEventListener("popstate", () => { if (!history.state?.rvform && $("rvform").classList.contains("show")) { $("rvform").classList.remove("show"); $("rvformbody").innerHTML = ""; rvFormBack = null; } });
+// The form itself (score, tags, comment, photos, submit), shared by the popup and the page. onDone(ok) runs after a submit.
+function buildReviewForm(latlng, seg, routeLabel, rank, i, onDone) {
   const box = document.createElement("div");
   box.className = "rv";
   const chips = (cls, tags) => `<div class="chips ${cls}">${tags.map(([e, k]) => `<button type="button" data-tag="${k}">${e} ${k}</button>`).join("")}</div>`;
@@ -1534,22 +2720,77 @@ function openReviewPopup(latlng, seg, routeLabel, rank, i) {
     <div class="t">이 길 어땠나요?</div>
     <div class="s">지도의 노란 구간(시작 → 끝)에 대한 리뷰예요</div>
     <div class="stats">${seg.review_count ? `${scoreBadge(seg.score_avg, seg.review_count)} <span class="loading">태그 불러오는 중…</span>` : "아직 리뷰가 없어요 — 첫 리뷰를 남겨주세요"}</div>
-    <div class="gallery" hidden></div>
+    ${seg.review_count ? `<button type="button" class="seeall">리뷰 ${seg.review_count}개 보기 →<small>다른 사람들의 평가</small></button>` : ""}
     <h4>점수</h4>
     <div class="slider"><input type="range" min="0" max="10" step="1" value="7"><output>7</output></div>
     <h4>좋았던 점</h4>${chips("good", GOOD_TAGS)}
     <h4>나빴던 점</h4>${chips("bad", BAD_TAGS)}
+    <h4>한 줄 남기기 <small style="font-weight:400;text-transform:none;letter-spacing:0">(선택사항)</small></h4>
+    <textarea class="comment" maxlength="200" placeholder="예: 저녁엔 가로등이 적어서 조금 어두워요"></textarea>
     <h4>사진 <small style="font-weight:400;text-transform:none;letter-spacing:0">(선택)</small></h4>
     <div class="attach"><label>📷 사진 첨부<input type="file" accept="image/jpeg,image/png,image/webp" multiple></label><small>최대 3장 · 각 5MB</small></div>
     <div class="thumbs"></div><div class="perr"></div>
+    <div class="photoai" hidden></div>
     <button type="button" class="submit">리뷰 제출</button>`;
   // photo attachments: validate, downscale to <=1600px JPEG for upload, show removable thumbnails
   const photos = [];
   const fileInput = box.querySelector(".attach input"), thumbs = box.querySelector(".thumbs"), perr = box.querySelector(".perr");
   const renderThumbs = () => {
     thumbs.innerHTML = photos.map((ph, n) => `<div><img src="${ph.data}" alt=""><button type="button" data-n="${n}" title="제거">×</button></div>`).join("");
-    thumbs.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { photos.splice(+b.dataset.n, 1); renderThumbs(); }));
+    thumbs.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { photos.splice(+b.dataset.n, 1); renderThumbs(); analyzePhotos(); }));
   };
+  // ---- photo AI: Claude looks at the attached photos; nothing is applied until the user says yes ----
+  let photoAi = null, photoSeq = 0;  // photoAi = { ...analysis, accepted: true|false } once the user decided
+  let photoPending = null, photoUndecided = null;  // pending: promise of the running analysis; undecided: result shown but not answered yet
+  const paBox = box.querySelector(".photoai");
+  const tagChip = t => `<span class="${BAD_TAGS.some(([, k]) => k === t) ? "bad" : ""}">${TAG_EMOJI[t] || ""} ${t}</span>`;
+  const esc0 = t => String(t ?? "").replace(/</g, "&lt;");
+  function analyzePhotos() { photoPending = runPhotoAnalysis().finally(() => { photoPending = null; }); }
+  async function runPhotoAnalysis() {
+    const seq = ++photoSeq; photoAi = null; photoUndecided = null;
+    if (!photos.length || !API.enabled) { console.log("[photoAI] skipped (photos:", photos.length, "API.enabled:", API.enabled, ")"); paBox.hidden = true; paBox.innerHTML = ""; return; }
+    console.log("[photoAI] POST /api/analyze-photo with", photos.length, "photo(s)");
+    paBox.hidden = false; paBox.className = "photoai loading"; paBox.innerHTML = "✨ AI가 사진을 살펴보는 중…";
+    try {
+      const res = await api("/api/analyze-photo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ photos: photos.map(ph => ({ type: ph.type, data: ph.data })), edge_id: seg.edge_id, user_id: userId }) });
+      const d = await res.json();
+      console.log("[photoAI] response", res.status, d);
+      if (!res.ok) throw new Error(d.error || res.statusText);
+      if (seq !== photoSeq) { console.log("[photoAI] discarded: photos changed while analysing"); return; }
+      const found = [...d.good_tags, ...d.bad_tags], kws = d.keywords || [];
+      const axes = Object.entries(d.axes || {}).filter(([, v]) => Math.abs(v) >= 0.3).map(([k, v]) => `${{ vehicle: "차량", vibe: "분위기", park: "공원", tree: "가로수" }[k]} ${v > 0 ? "+" : ""}${v}`);
+      if (!found.length && !kws.length && !axes.length) { photoAi = { ...d, accepted: false, decision: "no_findings" }; paBox.className = "photoai off"; paBox.innerHTML = `사진에서 길의 고정적인 특징을 찾지 못했어요${(d.transient_notes || []).length ? ` (촬영 당시 상황: ${d.transient_notes.join(" · ")})` : ""}. 그대로 제출해도 괜찮아요.`; return; }
+      photoUndecided = { d, found, kws };  // answered by the buttons below, or by the confirm on submit
+      paBox.className = "photoai" + (d.suspicious ? " sus" : "");
+      if (d.suspicious) {  // the stretch already has photos and this one looks like another place
+        paBox.innerHTML = `<b>⚠️ 이 구간의 다른 사진들과 장소가 달라 보여요</b><div class="small">${esc0(d.place_check?.reason || "")}</div>
+          <div class="found">${found.map(tagChip).join("")}${kws.map(k => `<span class="kw">✨ ${k}</span>`).join("")}</div>
+          다른 구간의 사진이라면 취소하고 해당 구간에서 남겨 주세요. 그래도 추가하면 사진 신뢰도가 낮아집니다.
+          <div class="acts"><button type="button" class="no">추가하지 않기</button><button type="button" class="yes">그래도 추가</button></div>`;
+      } else {
+      const notes = d.transient_notes || [];
+      paBox.innerHTML = `<b>AI가 사진에서 이런 요소를 발견했어요</b>${d.summary ? ` <small>· ${d.summary}</small>` : ""}
+        <div class="found">${found.map(tagChip).join("")}${kws.map(k => `<span class="kw">✨ ${k}</span>`).join("")}${axes.length ? `<span>${axes.join(" · ")}</span>` : ""}</div>
+        ${notes.length ? `<div class="transient">📷 촬영 당시 상황: ${notes.join(" · ")} <small>— 그때만의 상황이라 태그로 저장하지 않고 분위기 참고로만 씁니다</small></div>` : ""}
+        ${found.length ? "리뷰에 추가할까요?" : "축 보정과 새 키워드로 반영할까요?"}
+        <div class="acts"><button type="button" class="yes">네, 추가할게요</button><button type="button" class="no">아니요</button></div>`;
+      }
+      const accept = () => {
+        photoAi = { ...d, accepted: true, decision: "user_yes" }; photoUndecided = null;
+        for (const t of found) box.querySelector(`.chips button[data-tag="${CSS.escape(t)}"]`)?.classList.add("on");  // chips on = the user's tags now
+        paBox.className = "photoai done"; paBox.innerHTML = `✓ 사진에서 찾은 ${found.length ? `태그 ${found.length}개` : "특징"}를 리뷰에 추가했어요${kws.length ? ` · 새 키워드 ${kws.join(", ")}` : ""}`;
+      };
+      const decline = () => { photoAi = { ...d, accepted: false, decision: "user_no" }; photoUndecided = null; paBox.className = "photoai off"; paBox.innerHTML = "사진 분석 결과는 반영하지 않아요."; };
+      photoUndecided.accept = accept; photoUndecided.decline = decline;
+      paBox.querySelector(".yes").addEventListener("click", accept);
+      paBox.querySelector(".no").addEventListener("click", decline);
+      paBox.scrollIntoView({ block: "nearest", behavior: "smooth" });  // make the question visible even in a long form
+    } catch (err) {
+      console.warn("[photoAI] failed:", err);
+      if (seq !== photoSeq) return;
+      photoAi = null; paBox.className = "photoai off"; paBox.innerHTML = `사진 분석을 건너뛰었어요 (${err.message}). 리뷰는 그대로 남길 수 있어요.`;
+    }
+  }
   fileInput.addEventListener("change", async () => {
     perr.textContent = "";
     for (const file of [...fileInput.files]) {
@@ -1558,22 +2799,129 @@ function openReviewPopup(latlng, seg, routeLabel, rank, i) {
       try { photos.push(await shrinkImage(file)); } catch { perr.textContent = `${file.name}: 읽을 수 없는 이미지예요.`; }
     }
     fileInput.value = ""; renderThumbs();
+    console.log("[photoAI] files selected ->", photos.length, "photo(s); API.enabled =", API.enabled);
+    analyzePhotos();
   });
   const slider = box.querySelector("input"), out = box.querySelector("output");
   const paint = () => { out.textContent = slider.value; out.style.color = scoreColor(+slider.value); slider.style.accentColor = scoreColor(+slider.value); };
   slider.addEventListener("input", paint); paint();
   box.querySelectorAll(".chips button").forEach(b => b.addEventListener("click", () => b.classList.toggle("on")));
   const submit = box.querySelector(".submit");
-  let reporting = false;
+  box._reporting = false;
   submit.addEventListener("click", async () => {
-    reporting = true; submit.disabled = true; submit.textContent = "반영 중…";
+    box._reporting = true; submit.disabled = true;
+    // Photo analysis still running: wait for it (max 20 s) so its findings are not silently dropped.
+    if (photoPending) { submit.textContent = "사진 분석 기다리는 중…"; await Promise.race([photoPending, new Promise(r => setTimeout(r, 20000))]); }
+    // Result shown but not answered: the confirm popup decides (OK = add, Cancel = leave it out).
+    if (photoUndecided) {
+      const { d, found, kws, accept, decline } = photoUndecided;
+      const items = [...found, ...kws.map(k => `✨ ${k}`)].join(", ") || "축 보정 신호";
+      const q = d.suspicious
+        ? `⚠️ 이 사진은 이 구간의 다른 사진들과 장소가 달라 보여요.
+${d.place_check?.reason || ""}
+
+그래도 분석 결과(${items})를 리뷰에 추가할까요?
+추가하면 사진 신뢰도가 낮아집니다.`
+        : `AI가 사진에서 이런 요소를 발견했어요:
+${items}
+
+리뷰에 추가할까요?`;
+      const yes = confirm(q);
+      (yes ? accept : decline)();
+      if (photoAi) photoAi.decision = yes ? "confirm_yes" : "confirm_no";  // decided by the dialog, not by the buttons
+    }
+    submit.textContent = "반영 중…";
+    console.log("[photoAI] submitting with photo_ai =", photoAi);
     const pick = cls => [...box.querySelectorAll(`.chips.${cls} button.on`)].map(b => b.dataset.tag);
-    const ok = await submitReview({ edge_id: seg.edge_id, score: +slider.value, good_tags: pick("good"), bad_tags: pick("bad"), photos: photos.map(ph => ({ type: ph.type, data: ph.data })) }, `${routeLabel} · ${segmentName(seg)}`);
-    if (ok) map.closePopup(); else { reporting = false; submit.disabled = false; submit.textContent = "리뷰 제출"; }
+    const ok = await submitReview({ edge_id: seg.edge_id, score: +slider.value, good_tags: pick("good"), bad_tags: pick("bad"), comment: box.querySelector(".comment").value.trim(), photos: photos.map(ph => ({ type: ph.type, data: ph.data })), ...(photoAi ? { photo_ai: photoAi } : {}) }, `${routeLabel} · ${segmentName(seg)}`);
+    if (!ok) { box._reporting = false; submit.disabled = false; submit.textContent = "리뷰 제출"; }
+    onDone(ok);
   });
-  L.popup({ closeButton: true, autoPan: true, maxWidth: 330, autoPanPaddingBottomRight: [20, detailRank != null ? Math.round(window.innerHeight * 0.4) + 20 : 20], autoPanPaddingTopLeft: [20, 70] }).setLatLng(latlng).setContent(box).openOn(map);
-  map.once("popupclose", () => { highlightSegment(null); if (!reporting && R[rank]?.selected) setRouteSelected(rank, false); });
-  if (seg.review_count) loadStats(seg.edge_id, box.querySelector(".stats"), box.querySelector(".gallery"));
+  box.querySelector(".seeall")?.addEventListener("click", () => { closeReviewPage(false); closeReviewFloat(false); openReviewList(seg, { latlng, routeLabel, rank, i }); });
+  if (seg.review_count) loadStats(seg.edge_id, box.querySelector(".stats"));
+  return box;
+}
+let leavingForList = false;  // set while the popup closes to open the review list, so the route stays selected
+
+// ---------- full-screen review list for one segment ----------
+let rvSort = "recent", rvData = null, rvBack = null;
+function openReviewList(seg, back) {
+  rvBack = { seg, ...back };
+  leavingForList = true; map.closePopup(); closeReviewFloat(false);
+  $("rvttl").textContent = `📍 ${segmentName(seg)} 구간 · ${fmt(seg.length_m)}m`;
+  $("rvsub").textContent = "불러오는 중…";
+  $("rvlist").innerHTML = '<p class="empty">불러오는 중…</p>';
+  $("rvpage").classList.add("show");
+  history.pushState({ rvpage: 1 }, "");
+  loadReviewList(seg);
+}
+function closeReviewList(reopen = true) {
+  if (!$("rvpage").classList.contains("show")) return;
+  $("rvpage").classList.remove("show");
+  if (history.state?.rvpage) history.back();
+  const b = rvBack; rvBack = null;
+  if (reopen && b) openReviewPopup(b.latlng, b.seg, b.routeLabel, b.rank, b.i);
+}
+$("rvback").addEventListener("click", () => closeReviewList(true));
+window.addEventListener("popstate", () => { if (!history.state?.rvpage && $("rvpage").classList.contains("show")) { $("rvpage").classList.remove("show"); const b = rvBack; rvBack = null; if (b) openReviewPopup(b.latlng, b.seg, b.routeLabel, b.rank, b.i); } });
+document.querySelectorAll("#rvpage .sorts button").forEach(b => b.addEventListener("click", () => { rvSort = b.dataset.sort; document.querySelectorAll("#rvpage .sorts button").forEach(x => x.classList.toggle("on", x === b)); renderReviewList(); }));
+async function loadReviewList(seg) {
+  try {
+    const st = await (await api(`/api/reviews/${encodeURIComponent(seg.edge_id)}?` + new URLSearchParams({ user_id: userId, full: 1 }))).json();
+    rvData = st;
+    $("rvsub").textContent = st.review_count ? `평균 ${st.score_avg.toFixed(1)}점 · 리뷰 ${st.review_count}개${st.own_count ? ` · 내 리뷰 ${st.own_count}` : ""}${st.danger ? " · ⚠️ 위험 신고 구간" : ""}` : "아직 리뷰가 없어요";
+    renderReviewList();
+  } catch (err) { $("rvlist").innerHTML = `<p class="empty">${err.message}</p>`; }
+}
+// Taste match: 2 = same purpose and a shared sub-preference, 1 = same purpose, 0 = different / unknown.
+function tasteMatch(r) {
+  const mine = state.mode === "ai" ? "ai" : state.purpose?.id;
+  if (!mine || !r.purpose || r.purpose !== mine) return 0;
+  return state.subs.some(sb => (r.subs || []).includes(sb.id)) ? 2 : 1;
+}
+const subName = (purpose, id) => PURPOSES.find(p => p.id === purpose)?.subs.find(s => s.id === id)?.name || id;
+const maskNick = n => n ? (n.length > 1 && /^\*+$/.test(n.slice(1)) ? n : n[0] + "*".repeat(Math.max(n.length - 1, 1))) : "익명";  // "이영규" -> "이**"
+function ago(ts) {
+  if (!ts) return ""; const d = (Date.now() - new Date(ts).getTime()) / 864e5;
+  return d < 1 ? "오늘" : d < 2 ? "어제" : d < 30 ? `${Math.floor(d)}일 전` : d < 365 ? `${Math.floor(d / 30)}개월 전` : ts.slice(0, 10);
+}
+function renderReviewList() {
+  const list = $("rvlist"); if (!rvData) return;
+  const rows = [...(rvData.reviews || [])];
+  const ts = r => new Date(r.ts || 0).getTime();
+  if (rvSort === "recent") rows.sort((a, b) => ts(b) - ts(a));
+  else if (rvSort === "popular") rows.sort((a, b) => b.helpful_count - a.helpful_count || (b.photos.length + (b.comment ? 1 : 0)) - (a.photos.length + (a.comment ? 1 : 0)) || ts(b) - ts(a));
+  else rows.sort((a, b) => tasteMatch(b) - tasteMatch(a) || ts(b) - ts(a));
+  const mine = state.mode === "ai" ? "AI 취향" : state.purpose ? `${state.purpose.name}${state.subs[0] ? " · " + state.subs[0].name : ""}` : null;
+  $("rvhint").textContent = rvSort === "match" ? (mine ? `내 취향(${mine})과 같은 사용자의 리뷰가 위로 옵니다.` : "취향을 아직 고르지 않아 최신순으로 보여요.") : rvSort === "popular" ? "👍 도움돼요를 많이 받은 순, 그다음 사진·글이 있는 리뷰." : "";
+  if (!rows.length) { list.innerHTML = '<p class="empty">아직 리뷰가 없어요.</p>'; return; }
+  list.innerHTML = "";
+  for (const r of rows) {
+    const m = tasteMatch(r), name = r.mine ? (r.user_id || "익명") : maskNick(r.user_id);
+    const card = document.createElement("div"); card.className = "rc" + (rvSort === "match" && m ? " match" : "");
+    const tags = [...r.good_tags.map(t => `<span>${TAG_EMOJI[t] || ""} ${t}</span>`), ...r.bad_tags.map(t => `<span class="bad">${TAG_EMOJI[t] || "⚑"} ${t}</span>`)].join("");
+    const aitags = [...r.ai_good_tags.map(t => `<span>${TAG_EMOJI[t] || ""} ${t}</span>`), ...r.ai_bad_tags.map(t => `<span>${TAG_EMOJI[t] || "⚑"} ${t}</span>`)].join("");
+    card.innerHTML = `
+      <div class="head"><div class="av" style="background:${scoreColor(r.score)}22;color:${scoreColor(r.score)}">${name.slice(0, 1).toUpperCase()}</div>
+        <div class="who"><b>${name.replace(/</g, "&lt;")}</b>${r.mine ? " <small style='display:inline'>(나)</small>" : ""}<small>${r.purpose ? `${PURPOSE_KO[r.purpose] || r.purpose}${(r.subs || []).length ? " · " + r.subs.map(sb => subName(r.purpose, sb)).join(", ") : ""}` : "취향 미선택"}</small></div>
+        <div class="sc" style="color:${scoreColor(r.score)}">${r.score}<small style="font-size:11px;color:var(--muted)">/10</small></div></div>
+      ${tags ? `<div class="tags">${tags}</div>` : ""}
+      ${aitags ? `<div class="aitags"><span class="lbl">✨ AI가 글에서 추가</span>${aitags}</div>` : ""}
+      <div class="txt${r.comment ? "" : " none"}">${r.comment ? r.comment.replace(/</g, "&lt;") : "글 없이 점수만 남겼어요"}</div>
+      ${r.photos.length ? `<div class="ph">${r.photos.map(u => `<a href="${u}" data-cap="${name} · ${r.score}점 · ${(r.ts || "").slice(0, 10)}"><img src="${u}" alt="" loading="lazy"></a>`).join("")}</div>` : ""}
+      <div class="foot"><span title="${r.ts || ""}">${ago(r.ts)}</span>${m ? `<span class="match">· ${m === 2 ? "취향 일치" : "같은 목적"}</span>` : ""}<span class="sp"></span>
+        <button type="button" class="help${r.helped ? " on" : ""}" ${r.mine ? "disabled title='내 리뷰'" : ""}>👍 도움돼요${r.helpful_count ? ` ${r.helpful_count}` : ""}</button></div>`;
+    card.querySelectorAll(".ph a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); showLightbox(a.href, a.dataset.cap); }));
+    card.querySelector(".help").addEventListener("click", async e => {
+      const btn = e.currentTarget; btn.disabled = true;
+      try {
+        const res = await api(`/api/review/${encodeURIComponent(r.id)}/helpful`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: userId }) });
+        const d = await res.json(); if (!res.ok) throw new Error(d.error || res.statusText);
+        Object.assign(r, d.review); renderReviewList();
+      } catch (err) { showError(err.message); btn.disabled = false; }
+    });
+    list.appendChild(card);
+  }
 }
 // Read an image file and downscale it (longest side 1600 px, JPEG 0.85) so uploads stay small.
 function shrinkImage(file) {
@@ -1593,18 +2941,16 @@ function shrinkImage(file) {
 }
 function showLightbox(url, caption) { $("lightbox").querySelector("img").src = url; $("lightbox").querySelector(".cap").textContent = caption || ""; $("lightbox").classList.add("show"); }
 $("lightbox").addEventListener("click", () => $("lightbox").classList.remove("show"));
-async function loadStats(edgeId, el, gallery) {
+async function loadStats(edgeId, el) {
+  // Popup summary only: score badge + tag counts + the danger notice. Individual reviews live in the review list page.
   try {
     const stats = await (await api(`/api/reviews/${encodeURIComponent(edgeId)}?` + new URLSearchParams({ user_id: userId }))).json();
     const tags = [...Object.entries(stats.good_tags).map(([k, n]) => `<span class="tag">${TAG_EMOJI[k] || ""} ${k} ${n}</span>`), ...Object.entries(stats.bad_tags).map(([k, n]) => `<span class="tag">${TAG_EMOJI[k] || "⚑"} ${k} ${n}</span>`)];
     el.querySelector(".loading")?.remove();
-    el.insertAdjacentHTML("beforeend", (stats.own_count ? `<span class="tag">👤 내 리뷰 ${stats.own_count}</span>` : "") + (tags.join("") || "<span>태그 없음</span>"));
-    // Other people's photos, newest first; hidden when there are none.
-    if (gallery && stats.photos?.length) {
-      gallery.hidden = false;
-      gallery.innerHTML = [...stats.photos].reverse().map(ph => `<a href="${ph.url}" data-cap="${ph.user_id || "익명"} · ${ph.score}점 · ${(ph.ts || "").slice(0, 10)}"><img src="${ph.url}" alt="" loading="lazy"></a>`).join("");
-      gallery.querySelectorAll("a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); showLightbox(a.href, a.dataset.cap); }));
-    }
+    el.insertAdjacentHTML("beforeend", (stats.own_count ? `<span class="tag">👤 내 리뷰 ${stats.own_count}</span>` : "") + (tags.join("") || "<span>태그 없음</span>") + (stats.photos?.length ? `<span class="tag">📷 ${stats.photos.length}</span>` : ""));
+    if (stats.danger) el.insertAdjacentHTML("afterend", '<div class="dangerbox">⚠️ 무서움·어두움 신고가 3건 이상 접수된 구간이에요. 모든 경로에서 최대한 피해 갑니다.</div>');
+    const see = el.parentElement.querySelector(".seeall");
+    if (see && stats.review_count) see.firstChild.textContent = `리뷰 ${stats.review_count}개 보기 →`;
   } catch { el.querySelector(".loading")?.remove(); }
 }
 async function submitReview(review, title) {
@@ -1614,11 +2960,19 @@ async function submitReview(review, title) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || res.statusText);
     if (data.routes) render(data.routes);
+    if (dangerOn) loadDangerZones();  // a 무서움/어두움 tag may have pushed a stretch over the threshold
     const a = data.applied, tags = [...a.good_tags, ...a.bad_tags].map(k => `${TAG_EMOJI[k] || ""} ${k}`).join(" · ");
     const wVibe = weightParams().w_vibe;
+    // Comment analysis (server-side Claude): tags it added on its own, axis nudges, new keywords for the admin page.
+    const ai = a.ai, aiNote = ai ? [
+      (ai.auto_good_tags || []).length || (ai.auto_bad_tags || []).length ? `AI가 글에서 태그 추가: ${[...(ai.auto_good_tags || []), ...(ai.auto_bad_tags || []).map(t => "⚑ " + t)].join(", ")}` : "",
+      Object.entries(ai.axes || {}).filter(([, v]) => v).length ? `축 반영: ${Object.entries(ai.axes).filter(([, v]) => v).map(([k, v]) => `${{ vehicle: "차량", vibe: "분위기", park: "공원", tree: "가로수" }[k]} ${v > 0 ? "+" : ""}${v}`).join(", ")}` : "",
+      (ai.keywords || []).length ? `새 키워드 후보: ${ai.keywords.join(", ")}` : "",
+    ].filter(Boolean).join(" · ") : "";
+    const pa = a.ai_photo, photoNote = pa?.accepted ? `📷 사진 분석 반영${(pa.keywords || []).length ? ` (키워드 ${pa.keywords.join(", ")})` : ""}` : "";
     showComparison(previous, data.routes, {
       title: `★ ${a.score} · ${title}`,
-      sub: `${km(a.length_m)} 구간 평균 ${a.score_avg.toFixed(1)}점 (${a.review_count}건) · 분위기 ${fmt(a.vibe_before * 100)} → ${fmt(a.vibe_after * 100)}${tags ? ` · ${tags}` : ""}${a.avoid_penalty_max ? ` · 회피 페널티 최대 ×${(1 + a.avoid_penalty_max).toFixed(1)} (제외 설정한 항목만, 최단 경로 제외)` : ""}${wVibe || a.bad_tags.length ? "" : " · 이 취향은 분위기를 안 봐서 경로 자체는 그대로예요"} · 회색 점선 = 리뷰 전 경로`,
+      sub: `${[aiNote, photoNote].filter(Boolean).map(x => x + " · ").join("")}${km(a.length_m)} 구간 평균 ${a.score_avg.toFixed(1)}점 (${a.review_count}건) · 분위기 ${fmt(a.vibe_before * 100)} → ${fmt(a.vibe_after * 100)}${tags ? ` · ${tags}` : ""}${a.avoid_penalty_max ? ` · 회피 페널티 최대 ×${(1 + a.avoid_penalty_max).toFixed(1)} (제외 설정한 항목만, 최단 경로 제외)` : ""}${wVibe || a.bad_tags.length ? "" : " · 이 취향은 분위기를 안 봐서 경로 자체는 그대로예요"} · 회색 점선 = 리뷰 전 경로`,
     });
     return true;
   } catch (err) {
@@ -1644,12 +2998,10 @@ function showComparison(before, after, { title, sub }) {
       <td class="${changed ? "changed" : "same"}">${changed ? "경로 변경" : "동일"}</td>
     </tr>`;
   }).join("");
-  $("compare").innerHTML = `<div class="compare">
-    <div class="head"><span>${title}</span><button type="button" id="closeCompare">이전 경로 숨기기</button></div>
-    <div class="sub">${sub}</div>
-    <table><tr><th>경로</th><th>분위기 (전 → 후)</th><th>거리</th><th></th></tr>${rows}</table>
-  </div>`;
-  $("closeCompare").addEventListener("click", () => { ghosts.forEach(g => routeLayer.removeLayer(g)); ghosts = []; $("compare").innerHTML = ""; });
+  const changedCount = after.features.filter((f, i) => f.properties.duplicate_of == null && before.features[i] && !sameEdges(f.properties.edges, before.features[i].properties.edges)).length;
+  void rows;  // per-route table dropped from the sheet (feedback: too dense); the grey ghost lines on the map show what moved
+  showToast(`<b>${title}</b><small>${sub}</small><small>${changedCount ? `경로 ${changedCount}개가 바뀌었어요 · ` : "경로는 그대로예요 · "}회색 점선 = 리뷰 전 경로</small>`,
+    { ms: 8000, action: { label: "이전 경로 숨기기", onClick: () => { ghosts.forEach(g => routeLayer.removeLayer(g)); ghosts = []; } } });
 }
 
 // ---------- boot: status -> nickname -> prefs / onboarding ----------
@@ -1682,7 +3034,7 @@ $("logout").addEventListener("click", () => {
   try { localStorage.removeItem(USER_KEY); localStorage.removeItem(DEFAULT_KEY); sessionStorage.removeItem(SESSION_KEY); } catch {}  // server profile stays
   $("acctmenu").classList.remove("show");
   clearRoutes();
-  Object.assign(state, { mode: "buttons", purpose: null, subs: [], avoid: [], source: null, ai: null });
+  Object.assign(state, { mode: "buttons", purpose: null, subs: [], avoid: [], source: null, ai: null, waypoints: [] }); renderWaypoints();
   userId = ""; $("askinput").value = ""; $("askhint").className = "";
   showLogin(false);
 });
@@ -1718,16 +3070,80 @@ async function enter() {
   if (sessionPrefs || defaultPrefs) { usePrefs(sessionPrefs || defaultPrefs, sessionPrefs ? "once" : "default"); applyState(); peekSheet(); }
   else startOnboarding("first");
 }
+// ---------- app intro: 6 slides, swipe / drag / arrow keys; shown once (INTRO_KEY) and from the account menu ----------
+const INTRO_KEY = "walkroute.intro.v1";
+const intro = { n: 0, count: document.querySelectorAll("#intro .slide").length, done: null };
+$("introdots").innerHTML = Array.from({ length: intro.count }, (_, i) => `<i data-i="${i}"></i>`).join("");
+function introGo(n, drag = false) {
+  intro.n = Math.max(0, Math.min(intro.count - 1, n));
+  const track = $("introtrack"); track.classList.toggle("drag", drag); track.style.transform = `translateX(${-intro.n * 100}%)`;
+  $("introdots").querySelectorAll("i").forEach((d, i) => d.classList.toggle("on", i === intro.n));
+  const last = intro.n === intro.count - 1;
+  $("introprev").hidden = intro.n === 0; $("intronext").hidden = last; $("introgo").hidden = !last;
+  $("introskip").hidden = last;
+  track.querySelectorAll(".slide .emo").forEach((e, i) => { if (i === intro.n) { e.style.animation = "none"; void e.offsetWidth; e.style.animation = ""; } });
+}
+function showIntro(done) { intro.done = done || null; $("intro").classList.add("show"); introGo(0); }
+function closeIntro() {
+  if (!$("intro").classList.contains("show")) return;
+  storage.set(INTRO_KEY, "1");
+  $("intro").classList.remove("show");
+  const d = intro.done; intro.done = null; if (d) d();
+}
+$("introskip").addEventListener("click", closeIntro);
+$("introgo").addEventListener("click", closeIntro);
+$("intronext").addEventListener("click", () => introGo(intro.n + 1));
+$("introprev").addEventListener("click", () => introGo(intro.n - 1));
+$("introdots").addEventListener("click", e => { const i = e.target.dataset.i; if (i != null) introGo(+i); });
+document.addEventListener("keydown", e => {
+  if (!$("intro").classList.contains("show")) return;
+  if (e.key === "ArrowRight") introGo(intro.n + 1); else if (e.key === "ArrowLeft") introGo(intro.n - 1); else if (e.key === "Escape") closeIntro(); else if (e.key === "Enter" && intro.n === intro.count - 1) closeIntro();
+});
+// swipe: pointer events cover touch and mouse; the track follows the finger, then snaps
+(() => {
+  const track = $("introtrack"); let x0 = null, dx = 0, w = 1;
+  track.addEventListener("pointerdown", e => { if (e.button && e.button !== 0) return; x0 = e.clientX; dx = 0; w = track.clientWidth || 1; track.setPointerCapture?.(e.pointerId); });
+  track.addEventListener("pointermove", e => { if (x0 == null) return; dx = e.clientX - x0; track.classList.add("drag"); track.style.transform = `translateX(calc(${-intro.n * 100}% + ${dx}px))`; });
+  const end = () => { if (x0 == null) return; const step = Math.abs(dx) > Math.min(80, w * 0.18) ? (dx < 0 ? 1 : -1) : 0; x0 = null; introGo(intro.n + step); };
+  track.addEventListener("pointerup", end); track.addEventListener("pointercancel", end); track.addEventListener("lostpointercapture", end);
+})();
+$("acctintro").addEventListener("click", () => { $("acctmenu").classList.remove("show"); showIntro(); });
+
+// ---------- ≡ side menu (phones): same actions as the desktop top-bar buttons ----------
+function openSideMenu() { $("prefmenu").classList.remove("show"); $("acctmenu").classList.remove("show"); $("sm-danger").classList.toggle("on", dangerOn); $("sidemenu").classList.add("show"); $("sidemenu").setAttribute("aria-hidden", "false"); $("menubtn").setAttribute("aria-expanded", "true"); }
+function closeSideMenu() { $("sidemenu").classList.remove("show"); $("sidemenu").setAttribute("aria-hidden", "true"); $("menubtn").setAttribute("aria-expanded", "false"); }
+$("menubtn").addEventListener("click", e => { e.stopPropagation(); $("sidemenu").classList.contains("show") ? closeSideMenu() : openSideMenu(); });
+$("smclose").addEventListener("click", closeSideMenu);
+$("sidemenu").addEventListener("click", e => { if (e.target === $("sidemenu")) closeSideMenu(); });  // tap outside the panel
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSideMenu(); });
+$("sm-rank").addEventListener("click", () => { closeSideMenu(); openRanking(); });
+$("sm-danger").addEventListener("click", () => { closeSideMenu(); setDanger(!dangerOn); });
+$("sm-prefs").addEventListener("click", () => { closeSideMenu(); startOnboarding("default"); });
+$("sm-intro").addEventListener("click", () => { closeSideMenu(); showIntro(); });
+
 (async function boot() {
   try {
     const status = await (await fetch("/api/status")).json();
-    Object.assign(API, { enabled: !!status.api_enabled, flag: !!status.api_flag, hasKey: !!status.has_key, aiLocked: !!status.ai_locked });
+    Object.assign(API, { enabled: !!status.api_enabled, flag: !!status.api_flag, hasKey: !!status.has_key, aiLocked: !!status.ai_locked, kakao: !!status.kakao, kakaoJsKey: status.kakao_js_key || null });
+    if (status.vworld_key) {  // swap the base map to VWorld (Korean government tiles); thumbnails created later pick up TILE_URL too
+      TILE_URL = TILES.vworld.url.replace("{key}", status.vworld_key); TILE_OPTS = { ...TILES.vworld.opts, tileSize: 256, zoomOffset: 0 };
+      // A fresh layer rather than setUrl(): detectRetina is applied in the TileLayer constructor.
+      const mobile = { updateWhenIdle: IS_TOUCH, updateWhenZooming: false, keepBuffer: IS_TOUCH ? 3 : 2 };
+      baseTiles.remove();
+      baseTiles = L.tileLayer(TILE_URL, { attribution: TILES.vworld.attr, ...TILE_OPTS, ...mobile }).addTo(map);
+      map.setMaxZoom(TILES.vworld.opts.maxZoom);
+    }
+    // NOTE: the Kakao Maps SDK (dapi.kakao.com/v2/maps/sdk.js?appkey=API.kakaoJsKey) draws its own map object; it is not a Leaflet
+    // tile source. Loading it is prepared here but not done: switching would mean rewriting every Leaflet layer below.
   } catch { Object.assign(API, { enabled: false }); }
   try { aiToken = sessionStorage.getItem(AI_SESSION_KEY) || ""; } catch {}
   syncAiUi();
   setGps(storage.get(GPS_KEY) === "1");  // default off
   const saved = (storage.get(USER_KEY) || "").trim();
-  if (saved) { setUser(saved); enter(); } else showLogin();
+  const start = () => { if (saved) { setUser(saved); enter(); } else showLogin(); };
+  if (storage.get(INTRO_KEY)) start(); else showIntro(start);  // first visit: the intro slides come before the login
+  if (location.pathname === "/ranking") setTimeout(openRanking, 300);
+  if (location.pathname === "/review") history.replaceState({}, "", "/");  // a reloaded review page has no route to attach to
 })();
 </script>
 </body>

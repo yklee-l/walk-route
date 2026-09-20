@@ -112,9 +112,10 @@ def candidate_routes(
     max_steps: int = MAX_STEPS,
     waypoints: list[tuple[float, float]] | None = None,
     revisit_penalty: float = DEFAULT_REVISIT_PENALTY,
+    keep_order: bool = False,
 ) -> tuple[Route, list[Candidate]]:
     if waypoints:
-        return candidate_routes_with_waypoints(graph, origin, destination, list(waypoints), profile, w_max, max_steps, revisit_penalty)
+        return candidate_routes_with_waypoints(graph, origin, destination, list(waypoints), profile, w_max, max_steps, revisit_penalty, keep_order)
     cache = RouteCache(graph, origin, destination, profile)
     shortest = cache.pure_shortest()
     candidates: list[Candidate] = []
@@ -138,8 +139,9 @@ def candidate_routes_with_waypoints(
     w_max: float = W_MAX,
     max_steps: int = MAX_STEPS,
     revisit_penalty: float = DEFAULT_REVISIT_PENALTY,
+    keep_order: bool = False,
 ) -> tuple[Route, list[Candidate]]:
-    """Origin -> waypoints (exact best order) -> destination, as two candidates (beta 1.0 and 1.15).
+    """Origin -> waypoints (exact best order, or the given order with keep_order) -> destination, as two candidates (beta 1.0 and 1.15).
 
     Legs are computed one after another; edges walked by earlier legs are multiplied by
     `revisit_penalty` (both directions, all parallel keys) before the next leg runs, and the
@@ -151,7 +153,7 @@ def candidate_routes_with_waypoints(
     direct_pure = direct_cache.pure_shortest()
     direct_route, _ = route_within_budget(direct_cache, MATRIX_BETA * direct_pure.length_m, w_max, max_steps)
     direct_lambda = next((f for f, r in direct_cache.routes.items() if r is direct_route and f != "pure"), 0.0)
-    wp = plan(graph, origin, destination, waypoints, profile, float(direct_lambda))
+    wp = plan(graph, origin, destination, waypoints, profile, float(direct_lambda), keep_order)
     seq = wp.nodes
 
     # beta 1.0: pure shortest per leg (no weights, no avoid penalties) - no lambda search, one Dijkstra per leg.

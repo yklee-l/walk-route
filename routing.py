@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,7 +12,8 @@ from shapely.geometry import LineString
 from score_gwanghwamun_edges import highway_values, vehicle_exposure_score
 
 
-GRAPH_PATH = Path("osmnx_outputs/gwanghwamun_walk_2km_scored.graphml")
+# WALKROUTE_GRAPH lets a deployment point at another copy of the scored graph (Railway, a mounted volume, ...).
+GRAPH_PATH = Path(os.environ.get("WALKROUTE_GRAPH") or "osmnx_outputs/gwanghwamun_walk_2km_scored.graphml")
 COST_KEY = "_route_cost"
 # Normalization caps for the penalty axes (both map to [0, 1]).
 # tree_count_20m counts Seoul street trees within 20 m of the edge line (rescore_trees_seoul.py),
@@ -19,6 +21,7 @@ COST_KEY = "_route_cost"
 # fully planted side at the usual 6-8 m spacing (graph p75 = 14, p90 = 34 per 100 m).
 TREE_PER_100M_CAP = 15.0
 PARK_CAP_M = 300.0  # park_distance_m p90 ~ 275 m
+DANGER_THRESHOLD = 3  # 무서움/어두움 reports on an edge from which everyone avoids it (server.py counts them)
 
 Edge = tuple[object, object, object]
 
@@ -53,7 +56,19 @@ def load_graph(path: Path = GRAPH_PATH) -> nx.MultiDiGraph:
         data["vibe_nudge"] = 0.0  # small additive vibe adjustments from tags (e.g. 어두움), on top of the review average
         data["vehicle_bump"] = 0.0
         data["negative_count"] = 0
+        data["danger_count"] = 0  # 무서움/어두움 reports; at DANGER_THRESHOLD the edge is avoided by everyone
+        data["danger_manual"] = 0  # admin override: 1 = forced danger, -1 = cleared (ignore the count), 0 = automatic
+        # Review-text signals (server.py analyses comments with Claude): shift the tree density (trees / 100 m)
+        # and the park distance (m) the penalty axes see, on top of the OSM/Seoul data.
+        data["tree_nudge"] = 0.0
+        data["park_nudge"] = 0.0
     return graph
+
+
+def is_danger(data: dict[str, object]) -> bool:
+    """Edge everyone should avoid: admin-forced, or >= DANGER_THRESHOLD 무서움/어두움 reports unless an admin cleared it."""
+    manual = int(number(data.get("danger_manual")))
+    return manual == 1 or (manual != -1 and number(data.get("danger_count")) >= DANGER_THRESHOLD)  # decayed float sum (server.py)
 
 
 def without_steps(graph: nx.MultiDiGraph) -> nx.MultiDiGraph:
@@ -90,13 +105,14 @@ def edge_tree_penalty(data: dict[str, object]) -> float:
     length = data["length"]
     if length <= 0:
         return 0.0
-    density = number(data.get("tree_count_20m")) / length * 100
+    density = max(number(data.get("tree_count_20m")) / length * 100 + number(data.get("tree_nudge")), 0.0)
     return length * (1 - min(density, TREE_PER_100M_CAP) / TREE_PER_100M_CAP)
 
 
 def edge_park_penalty(data: dict[str, object]) -> float:
     # Distance from the nearest park, saturating at PARK_CAP_M.
-    return data["length"] * min(number(data.get("park_distance_m"), default=PARK_CAP_M), PARK_CAP_M) / PARK_CAP_M
+    distance = max(number(data.get("park_distance_m"), default=PARK_CAP_M) + number(data.get("park_nudge")), 0.0)
+    return data["length"] * min(distance, PARK_CAP_M) / PARK_CAP_M
 
 
 def edge_vibe_penalty(data: dict[str, object]) -> float:
@@ -242,6 +258,7 @@ def route_segments(graph: nx.MultiDiGraph, route: Route) -> list[dict[str, objec
         segment["edge_id"] = ",".join(f"{a}-{b}-{c}" for a, b, c in edges)
         # Tags with an avoid penalty on any edge here (from bad-tag reviews / negative feedback), for the card copy.
         segment["report_tags"] = sorted({tag for a, b, c in edges for tag, value in (graph[a][b][c].get("avoid_by_tag") or {}).items() if value > 0})
+        segment["danger"] = any(is_danger(graph[a][b][c]) for a, b, c in edges)
         segment["coordinates"] = [[round(lon, 6), round(lat, 6)] for lon, lat in route_coordinates(graph, edges)]
     return segments
 

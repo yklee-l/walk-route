@@ -200,12 +200,17 @@ class WaypointPlan:
     direct: Route  # origin -> destination with no waypoints, pure shortest (for detour_m)
 
 
-def plan(graph: nx.MultiDiGraph, origin: object, destination: object, waypoints: list[tuple[float, float]], profile: Weights, direct_lambda: float) -> WaypointPlan:
-    """Snap, build the matrix at `direct_lambda`, solve the order. Steps 2-3 ignore the revisit penalty (approximation)."""
+def plan(graph: nx.MultiDiGraph, origin: object, destination: object, waypoints: list[tuple[float, float]], profile: Weights, direct_lambda: float, keep_order: bool = False) -> WaypointPlan:
+    """Snap, build the matrix at `direct_lambda`, solve the order. Steps 2-3 ignore the revisit penalty (approximation).
+
+    keep_order=True skips the TSP and visits the waypoints in the given order (the page's drag order).
+    """
     wp_nodes, kept = snap_waypoints(graph, waypoints, origin, destination)
     direct = shortest_route(graph, origin, destination, Weights(), avoid=False)  # pure shortest, reused for detour_m
     if not wp_nodes:
         return WaypointPlan(nodes=[origin, destination], visit_order=[], direct=direct)
+    if keep_order:
+        return WaypointPlan(nodes=[origin, *wp_nodes, destination], visit_order=list(kept), direct=direct)
     # Matrix and order use the plain (un-penalised) cost at the lambda the direct beta=1.15 route was found at.
     # This is an approximation: the revisit penalty applied while walking the legs is not known yet.
     table = CostTable(graph, profile)

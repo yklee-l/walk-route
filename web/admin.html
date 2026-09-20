@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>walk-route 관리자</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --bg: #fff; --panel: #f7f7f8; --border: #e4e4e7; --text: #18181b; --muted: #71717a; --accent: #2563eb; --danger: #dc2626; --ok: #16a34a; --radius: 12px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 -apple-system, "Segoe UI", "Malgun Gothic", Roboto, sans-serif; color: var(--text); background: var(--panel); }
+  header { background: var(--bg); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; }
+  header .sp { flex: 1; }
+  header small { color: var(--muted); }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav button { border: 0; background: none; padding: 8px 12px; border-radius: 999px; font: inherit; font-weight: 600; color: var(--muted); cursor: pointer; }
+  nav button.on { background: var(--accent); color: #fff; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  section { display: none; } section.on { display: block; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+  .card h2 { font-size: 15px; margin: 0 0 10px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  button, input, select { font: inherit; }
+  button.b { border: 1px solid var(--border); background: var(--bg); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 12.5px; }
+  button.b:hover { border-color: var(--accent); }
+  button.b.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.b.red { color: var(--danger); border-color: #fecaca; } button.b.red:hover { background: #fef2f2; }
+  button.b.ok { color: var(--ok); border-color: #bbf7d0; } button.b.ok:hover { background: #f0fdf4; }
+  button:disabled { opacity: .5; cursor: default; }
+  input[type=text], input[type=password], input[type=number] { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: #eef2ff; color: #3730a3; margin: 1px 2px 1px 0; }
+  .tag.bad { background: #fef2f2; color: #991b1b; } .tag.ai { background: #ede9fe; color: #5b21b6; }
+  .tag.photo { background: #e0f2fe; color: #075985; } .tag.temp { background: #fff7ed; color: #9a3412; }
+  .ailine, .photoline, .transientline { margin-top: 4px; padding-left: 6px; border-left: 2px solid #ede9fe; }
+  .photoline { border-left-color: #bae6fd; } .transientline { border-left-color: #fed7aa; color: var(--muted); }
+  .applied { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; cursor: help; }
+  .applied.ok { background: #dcfce7; color: #166534; } .applied.warn { background: #fef3c7; color: #92400e; }
+  .applied.bad { background: #fee2e2; color: #991b1b; } .applied.muted, .applied.none { background: var(--panel); color: var(--muted); }
+  .statusline { margin-top: 4px; padding-left: 6px; border-left: 2px solid var(--border); }
+  .statusline .why { font-size: 11px; margin-top: 2px; line-height: 1.45; }
+  .tag .split { border: 0; background: none; padding: 0 0 0 2px; font-size: 11px; cursor: pointer; color: #6b7280; } .tag .split:hover { color: var(--danger); }
+  .muted { color: var(--muted); } .small { font-size: 12px; }
+  .stat { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .stat div { background: var(--panel); border-radius: 10px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .msg { padding: 10px 12px; border-radius: 8px; background: #eff6ff; color: #1e40af; margin: 8px 0; display: none; }
+  .msg.show { display: block; } .msg.err { background: #fef2f2; color: #991b1b; }
+  .status { font-weight: 600; } .status.pending { color: #b45309; } .status.approved { color: var(--ok); } .status.rejected { color: var(--muted); }
+  .guide { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px; margin-top: 8px; }
+  .guide ol { margin: 6px 0 0; padding-left: 20px; } .guide li { margin-bottom: 4px; }
+  .bar { display: inline-block; height: 10px; background: var(--accent); border-radius: 3px; vertical-align: middle; }
+  #login { max-width: 380px; margin: 80px auto; }
+  #login input { width: 100%; margin: 8px 0; }
+  .ex { color: var(--muted); font-size: 12px; margin: 2px 0 0 0; padding-left: 14px; }
+  code { background: var(--panel); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .ph { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .ph a { width: 56px; height: 56px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); background: var(--panel); display: block; }
+  .ph a:hover { border-color: var(--accent); }
+  .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #lightbox { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,.88); display: none; align-items: center; justify-content: center; cursor: zoom-out; }
+  #lightbox.show { display: flex; }
+  #lightbox img { max-width: 96vw; max-height: 90vh; object-fit: contain; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  #lightbox .cap { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: #fff; font-size: 12.5px; text-shadow: 0 1px 3px #000; }
+  #lightbox .x { position: absolute; top: 14px; right: 16px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; font-size: 22px; cursor: pointer; }
+  #lightbox .open { position: absolute; top: 18px; left: 16px; color: #fff; font-size: 12.5px; text-decoration: underline; }
+  @media (max-width: 700px) { main { padding: 10px; } th, td { padding: 5px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛠 walk-route 관리자</h1>
+  <nav id="tabs" hidden>
+    <button data-tab="reviews" class="on">리뷰 모니터링</button>
+    <button data-tab="candidates">새 축 후보</button>
+    <button data-tab="danger">위험 구간</button>
+    <button data-tab="data">데이터</button>
+    <button data-tab="stats">통계</button>
+  </nav>
+  <span class="sp"></span>
+  <small id="apinote"></small>
+  <a href="/" class="small">← 서비스로</a>
+  <button class="b" id="logout" hidden>로그아웃</button>
+</header>
+<div id="lightbox"><button type="button" class="x" title="닫기">×</button><a class="open" target="_blank" rel="noopener">원본 열기 ↗</a><img alt=""><div class="cap"></div></div>
+<main>
+  <div class="msg" id="msg"></div>
+
+  <div class="card" id="login">
+    <h2>관리자 로그인</h2>
+    <p class="muted small">.env의 <code>ADMIN_PASSWORD</code>로 로그인합니다. 서비스 화면과는 별개의 비밀번호예요.</p>
+    <form id="loginform">
+      <input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password">
+      <button class="b pri" type="submit" style="width:100%">로그인</button>
+    </form>
+    <div class="msg" id="loginerr"></div>
+  </div>
+
+  <section id="tab-reviews">
+    <div class="card">
+      <div class="row"><h2 style="margin:0">리뷰 · 신고 <span class="muted small" id="rvtotal"></span></h2><span class="sp" style="flex:1"></span>
+        <label class="small"><input type="checkbox" id="rvauto" checked> 10초마다 새로고침</label><button class="b" id="rvreload">새로고침</button></div>
+      <p class="muted small">삭제하면 그 리뷰의 효과(점수·태그·AI 축 보정)가 그래프에서 제거되고 나머지가 다시 적용됩니다. 태그의 <b>📝AI</b>는 리뷰 글에서, <b>📷AI</b>는 사진에서 자동 추출된 것입니다. <span class="tag temp">🚗 일시적</span> 줄은 촬영 당시 상황(차량·혼잡·날씨)으로 태그가 아니라 분위기 참고로만 쓰입니다.
+        맨 아래 줄은 그 사진 분석이 그래프에 반영됐는지와 그 이유입니다 (✅ 반영 / ⚠️ 감쇠 반영 / ❌ 미반영). <b>영향력</b>은 시간 감쇠 가중치 <code>0.5^(경과일/30)</code>: 오늘 100 %, 30일 50 %, 60일 25 %.</p>
+      <div style="overflow-x:auto"><table><thead><tr><th>시각</th><th>영향력</th><th>종류</th><th>닉네임</th><th>구간</th><th>점수</th><th>태그</th><th>글 · AI 해석</th><th></th></tr></thead><tbody id="rvbody"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="tab-candidates">
+    <div class="card">
+      <h2>AI가 발견한 새 축 후보</h2>
+      <p class="muted small">리뷰 글에서 기존 축(차량·분위기·공원·가로수)이나 태그로 표현되지 않는 키워드가 나오면 <code>reviews.json › new_axis_candidates</code>에 쌓입니다. 새 키워드는 등록 전에 Claude가 기존 후보와 뜻이 같은지 확인해 같으면 그 후보에 합산됩니다(별칭으로 표시). 승인하면 새 축으로 추가하는 절차를 안내합니다 (코드 반영은 수동).</p>
+      <div style="overflow-x:auto"><table><thead><tr><th>키워드</th><th>횟수</th><th>구간 수</th><th>예시 문장</th><th>처음 · 최근</th><th>상태</th><th></th><th>합치기</th></tr></thead><tbody id="cdbody"></tbody></table></div>
+      <div id="guide"></div>
+    </div>
+  </section>
+
+  <section id="tab-danger">
+    <div class="card">
+      <h2>현재 위험 구간 <span class="muted small" id="dztotal"></span></h2>
+      <p class="muted small">무서움·어두움 신고가 <b id="dzth">3</b>건 이상이면 자동 지정됩니다. <b>해제</b>는 신고와 무관하게 위험 구간에서 빼고, <b>자동</b>은 수동 설정을 지웁니다.</p>
+      <div style="overflow-x:auto"><table><thead><tr><th>구간</th><th>길이</th><th>👻 무서움</th><th>🌑 어두움</th><th>신고자</th><th>지정</th><th></th></tr></thead><tbody id="dzbody"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>수동 지정</h2>
+      <form id="dzform" class="row">
+        <input type="text" id="dzedge" placeholder="edge_id (예: 436718740-436875672-0, 여러 개는 쉼표)" style="flex:1;min-width:260px">
+        <input type="text" id="dznote" placeholder="메모 (선택)" style="width:180px">
+        <button class="b red" type="submit" data-mode="force">⚠️ 위험 지정</button>
+        <button class="b ok" type="button" data-mode="clear">해제</button>
+        <button class="b" type="button" data-mode="auto">자동으로</button>
+      </form>
+      <p class="muted small">edge_id는 리뷰 목록의 구간을 클릭하면 채워집니다.</p>
+      <h2 style="margin-top:14px">수동 설정 목록</h2>
+      <table><thead><tr><th>구간</th><th>설정</th><th>시각</th><th>메모</th><th></th></tr></thead><tbody id="ovbody"></tbody></table>
+    </div>
+  </section>
+
+  <section id="tab-data">
+    <div class="card">
+      <h2>더미 데이터 생성</h2>
+      <p class="muted small"><code>generate_test_reviews.py</code>와 같은 로직입니다: 인사동·삼청동 골목은 7~10점, 대로는 1~3점(무서움·어두움·차 많음), user1~user10.</p>
+      <form id="genform" class="row">
+        <label>구간 수 <input type="number" id="gencount" value="25" min="1" max="60" style="width:70px"></label>
+        <label><input type="checkbox" id="genappend" checked> 기존 리뷰 유지(추가)</label>
+        <button class="b pri" type="submit">생성</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>reviews.json 초기화</h2>
+      <p class="muted small">서버의 <code>--reset</code>과 같습니다: 현재 파일을 <code>reviews.YYYYMMDD-HHMMSS.bak</code>으로 보관하고 리뷰·신고·축 후보·수동 위험 설정을 모두 비웁니다. 그래프는 OSM 기준값으로 돌아갑니다.</p>
+      <button class="b red" id="resetbtn">전체 초기화</button>
+    </div>
+  </section>
+
+  <section id="tab-stats">
+    <div class="card"><h2>요약</h2><div class="stat" id="totals"></div></div>
+    <div class="row" style="align-items:flex-start">
+      <div class="card" style="flex:1;min-width:280px"><h2>닉네임별 리뷰 수 · 사진 신뢰도</h2><p class="muted small" id="trustnote"></p><table><thead><tr><th>닉네임</th><th class="num">리뷰+신고</th><th class="num">📷 신뢰도</th><th class="num">검증/의심</th></tr></thead><tbody id="byuser"></tbody></table></div>
+      <div class="card" style="flex:1;min-width:280px"><h2>취향별 평균 점수 <span class="muted small">(구간 리뷰, 0~10)</span></h2><table><thead><tr><th>취향</th><th class="num">평균</th><th class="num">건수</th></tr></thead><tbody id="bypurpose"></tbody></table>
+        <h2 style="margin-top:14px">태그</h2><div id="tagstat" class="small"></div></div>
+    </div>
+    <div class="card"><h2>일별 접속 <span class="muted small">(최근 30일 · 페이지 로드 / 경로 탐색 / 닉네임 수)</span></h2><table><thead><tr><th>날짜</th><th class="num">페이지</th><th class="num">경로 탐색</th><th class="num">닉네임</th><th></th></tr></thead><tbody id="visits"></tbody></table></div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const TOKEN_KEY = "walkroute.admin-token";
+let token = ""; try { token = sessionStorage.getItem(TOKEN_KEY) || ""; } catch {}
+let tab = "reviews", rvTimer = null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const AXIS_KO = { vehicle: "차량", vibe: "분위기", park: "공원", tree: "가로수" };
+const fmtTs = ts => ts ? ts.replace("T", " ").slice(5, 16) : "";
+async function api(path, opts = {}) {
+  const res = await fetch("/api/admin/" + path, { ...opts, headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "1", ...(opts.headers || {}), ...(token ? { "X-Admin-Token": token } : {}) } });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== "login") { setToken(""); showLogin(data.error); throw new Error(data.error || "로그인이 필요합니다."); }
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+const post = (path, body) => api(path, { method: "POST", body: JSON.stringify(body || {}) });
+function msg(text, err = false) { const el = $("msg"); el.textContent = text; el.className = "msg show" + (err ? " err" : ""); clearTimeout(msg.t); msg.t = setTimeout(() => el.classList.remove("show"), err ? 8000 : 4000); }
+function setToken(t) { token = t; try { t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY); } catch {} }
+function showLogin(err) { $("login").style.display = ""; $("tabs").hidden = true; $("logout").hidden = true; document.querySelectorAll("section").forEach(s => s.classList.remove("on")); if (err) { $("loginerr").textContent = err; $("loginerr").className = "msg show err"; } }
+function showApp() { $("login").style.display = "none"; $("tabs").hidden = false; $("logout").hidden = false; setTab(tab); }
+
+$("loginform").addEventListener("submit", async e => {
+  e.preventDefault();
+  try { const d = await post("login", { password: $("pw").value }); setToken(d.token); $("pw").value = ""; $("loginerr").className = "msg"; showApp(); }
+  catch (err) { $("loginerr").textContent = err.message; $("loginerr").className = "msg show err"; }
+});
+$("logout").addEventListener("click", () => { setToken(""); showLogin(); });
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+function setTab(name) {
+  tab = name;
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === "tab-" + name));
+  clearInterval(rvTimer); rvTimer = null;
+  ({ reviews: loadReviews, candidates: loadCandidates, danger: loadDanger, data: () => {}, stats: loadStats })[name]();
+  if (name === "reviews") rvTimer = setInterval(() => { if ($("rvauto").checked && document.visibilityState === "visible") loadReviews(true); }, 10000);
+}
+
+// ---------- reviews ----------
+let trustCfg = { min_apply: 0.4, penalty: 0.25, recover: 0.05 };
+const DECISION_WHY = { user_yes: "사용자가 '그래도 추가'를 선택", confirm_yes: "제출 시 확인 창에서 추가를 선택", user_no: "사용자가 추가하지 않음", confirm_no: "확인 창에서 취소", no_findings: "반영할 내용이 없었음", auto: "서버 자동 분석", unknown: "사유 미기록" };
+// How a review's photo analysis ended up: badge + the one line an admin needs to judge it.
+function photoStatus(e) {
+  const pa = e.ai_photo, min = trustCfg.min_apply ?? 0.4;
+  if (!pa) return (e.photos || []).length ? { cls: "none", icon: "➖", label: "사진 분석 없음", why: "사진은 있지만 AI 분석 기록이 없어요 (분석 전 제출 또는 분석 실패)" } : null;
+  const trust = pa.trust ?? 1, pc = pa.place_check || {};
+  const place = !pc.checked ? "이 구간의 첫 사진이라 장소 검증 없이 신뢰"
+    : pc.same_place ? `장소 일치 확인됨 (확신 ${pc.confidence})`
+    : `⚠️ 다른 장소로 판정 (확신 ${pc.confidence}${pc.reason ? " · " + pc.reason : ""})`;
+  const history = e.user_photo_checks ? ` · 이 닉네임 검증 ${e.user_photo_checks}회 중 의심 ${e.user_photo_flags || 0}회` : "";
+  const applied = (w) => `적용 가중치 ${(w).toFixed(2)} (신뢰도 ${trust.toFixed(2)} × 감쇠 ${(e.decay ?? 1).toFixed(2)})`;
+  if (pa.accepted && trust >= min && !pa.suspicious)
+    return { cls: "ok", icon: "✅", label: "반영됨", why: `신뢰도 ${trust.toFixed(2)} · ${place} · ${applied(trust * (e.decay ?? 1))}${history}` };
+  if (pa.accepted && trust >= min)
+    return { cls: "warn", icon: "⚠️", label: "감쇠 반영", why: `${DECISION_WHY[pa.decision] || "사용자가 추가를 선택"} · ${place} · ${applied(trust * (e.decay ?? 1))}${history}` };
+  if (pa.accepted)
+    return { cls: "bad", icon: "❌", label: "미반영 — 신뢰도 낮음", why: `신뢰도 ${trust.toFixed(2)} (기준 ${min} 미만)이라 그래프 미반영 · ${place}${history}` };
+  // Not accepted: why not? "사용자 거절"은 실제로 거절을 누른 경우에만 씁니다.
+  const byDecision = {
+    user_no: { label: "미반영 — 사용자 거절", why: "사용자가 '아니요'(추가하지 않기)를 선택" },
+    confirm_no: { label: "미반영 — 사용자 거절", why: "제출 시 확인 창에서 '취소'를 선택" },
+    no_findings: { label: "미반영 — 반영할 내용 없음", why: "사진에서 길의 고정적인 특징을 찾지 못해 사용자에게 묻지 않았어요" },
+    auto: { label: "미반영 — 자동 분석", why: "사용자 확인 없이 서버가 분석해 기록만 했어요" },
+    unknown: { label: "미반영 — 사유 미기록", why: "결정 경로를 기록하기 전에 저장된 리뷰예요" },
+  };
+  const hit = byDecision[pa.decision] || byDecision[pa.auto ? "auto" : "unknown"];
+  return { cls: pa.decision === "no_findings" ? "muted" : "bad", icon: pa.decision === "no_findings" ? "➖" : "❌", label: hit.label, why: `${hit.why} · ${place}${history}` };
+}
+async function loadReviews(quiet = false) {
+  try {
+    const d = await api("reviews?limit=300");
+    if (d.photo_trust) trustCfg = d.photo_trust;
+    $("rvtotal").textContent = `${d.total}건`;
+    const body = $("rvbody"); body.innerHTML = "";
+    for (const e of d.entries) {
+      // Two independent analyses can touch one review: the comment (📝) and the photos (📷).
+      const ai = e.ai || {}, pa = e.ai_photo || null;
+      const fromText = new Set([...(ai.auto_good_tags || []), ...(ai.auto_bad_tags || [])]);
+      const fromPhoto = new Set(pa?.accepted ? [...(pa.good_tags || []), ...(pa.bad_tags || [])] : []);
+      const src = t => fromPhoto.has(t) ? ' <b title="사진 분석에서 추가된 태그">📷AI</b>' : fromText.has(t) ? ' <b title="리뷰 글 분석에서 추가된 태그">📝AI</b>' : "";
+      const tags = e.type === "report" ? `<span class="tag bad">⚑ ${esc(e.reason)}</span>`
+        : [...(e.good_tags || []).map(t => `<span class="tag">${esc(t)}${src(t)}</span>`), ...(e.bad_tags || []).map(t => `<span class="tag bad">⚑ ${esc(t)}${src(t)}</span>`)].join("");
+      const axesOf = a => a?.axes ? Object.entries(a.axes).filter(([, v]) => v).map(([k, v]) => `${AXIS_KO[k] || k} ${v > 0 ? "+" : ""}${v}`).join(" · ") : "";
+      const aiHtml = e.ai ? `<div class="small ailine"><span class="tag ai">📝AI</span>${esc(ai.summary || "")}${axesOf(ai) ? ` <span class="muted">(${esc(axesOf(ai))})</span>` : ""}${(ai.keywords || []).length ? ` 키워드: ${ai.keywords.map(k => `<span class="tag">${esc(k)}</span>`).join("")}` : ""}</div>` : "";
+      // Photo analysis: structural findings on one line, the moment-only observations on another (never stored as tags).
+      const paTags = [...(pa?.good_tags || []), ...(pa?.bad_tags || [])];
+      const paHtml = pa ? `<div class="small photoline"><span class="tag photo">📷AI</span>${esc(pa.summary || "")}${paTags.length ? ` · ${paTags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}` : ""}${(pa.keywords || []).length ? ` 키워드: ${pa.keywords.map(k => `<span class="tag">${esc(k)}</span>`).join("")}` : ""}${axesOf(pa) ? ` <span class="muted">(${esc(axesOf(pa))})</span>` : ""}
+</div>` : "";
+      const ps = photoStatus(e);
+      const psHtml = ps ? `<div class="small statusline"><span class="applied ${ps.cls}" title="${esc(ps.why)}">${ps.icon} ${esc(ps.label)}</span><div class="why muted">${esc(ps.why)}</div></div>` : "";
+      const trHtml = pa && (pa.transient_notes || []).length
+        ? `<div class="small transientline"><span class="tag temp">🚗 일시적</span>${pa.transient_notes.map(esc).join(" · ")}${pa.transient_vibe ? ` <span class="muted">(분위기 참고 ${pa.transient_vibe > 0 ? "+" : ""}${pa.transient_vibe})</span>` : ""} <span class="muted">— 태그로 저장하지 않음</span></div>`
+        : "";
+      const tr = document.createElement("tr");
+      const dk = e.decay ?? 1, dcol = dk >= 0.5 ? "#16a34a" : dk >= 0.25 ? "#b45309" : "#71717a";
+      tr.innerHTML = `<td class="small muted" style="white-space:nowrap">${fmtTs(e.ts)}${e.age_days != null ? `<br>${Math.round(e.age_days)}일 전` : ""}</td>
+        <td class="num" style="white-space:nowrap"><span class="bar" style="width:${Math.round(dk * 40)}px;background:${dcol}"></span> <b style="color:${dcol}">${Math.round(dk * 100)}%</b></td>
+        <td>${e.type === "report" ? "신고" : e.kind === "route" ? "경로 별점" : "구간 리뷰"}</td><td>${esc(e.user_id || "(익명)")}</td>
+        <td><a href="#" class="seg" data-edge="${esc(e.edge_id)}" title="위험 구간 폼에 edge_id 채우기">${esc(e.segment)}</a></td>
+        <td class="num">${e.type === "report" ? "" : e.kind === "route" ? "★" + e.route_score : e.score}</td><td>${tags}</td>
+        <td>${e.comment ? esc(e.comment) : '<span class="muted">—</span>'}${aiHtml}${paHtml}${trHtml}${psHtml}${(e.photos || []).length ? `<div class="ph">${e.photos.map(u => `<a href="${esc(u)}" data-cap="${esc(e.user_id || "(익명)")} · ${fmtTs(e.ts)} · ${esc(e.segment)}"><img src="${esc(u)}" alt="" loading="lazy"></a>`).join("")}</div>` : ""}</td>
+        <td style="white-space:nowrap"><button class="b red" data-del="${esc(e.id)}">삭제</button></td>`;
+      body.appendChild(tr);
+    }
+    body.querySelectorAll(".ph a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); showLightbox(a.getAttribute("href"), a.dataset.cap); }));
+    body.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+      if (!confirm("이 항목을 삭제할까요? 그래프 효과도 함께 제거됩니다.")) return;
+      b.disabled = true;
+      try { const r = await post(`review/${b.dataset.del}/delete`); msg(`삭제됨 · 남은 리뷰 ${r.reviews_total}건 / 신고 ${r.negatives_total}건`); loadReviews(true); } catch (err) { msg(err.message, true); b.disabled = false; }
+    }));
+    body.querySelectorAll(".seg").forEach(a => a.addEventListener("click", e => { e.preventDefault(); $("dzedge").value = a.dataset.edge; setTab("danger"); msg("edge_id를 수동 지정 폼에 채웠어요."); }));
+  } catch (err) { if (!quiet) msg(err.message, true); }
+}
+$("rvreload").addEventListener("click", () => loadReviews());
+
+// ---------- new axis candidates ----------
+async function loadCandidates() {
+  try {
+    const d = await api("candidates");
+    const body = $("cdbody"); body.innerHTML = "";
+    if (!d.candidates.length) body.innerHTML = '<tr><td colspan="7" class="muted">아직 후보가 없어요. 글이 있는 리뷰가 AI로 분석되면 여기에 쌓입니다.</td></tr>';
+    for (const c of d.candidates) {
+      const tr = document.createElement("tr");
+      const others = d.candidates.filter(o => o.keyword !== c.keyword);
+      tr.innerHTML = `<td><b>${esc(c.keyword)}</b>${(c.aliases || []).length ? `<div class="small muted">= ${c.aliases.map(a => `<span class="tag" title="이 별칭을 다시 독립 후보로 분리">${esc(a)} <button type="button" class="split" data-split="${esc(a)}" title="분리">✂</button></span>`).join(" ")}</div>` : ""}${c.split_from ? `<div class="small muted">‘${esc(c.split_from)}’에서 분리됨</div>` : ""}</td><td class="num">${c.count}</td><td class="num">${(c.edges || []).length}</td>
+        <td>${(c.examples || []).map(x => `<p class="ex">“${esc(x)}”</p>`).join("")}</td><td class="small muted">${fmtTs(c.first_ts)}<br>${fmtTs(c.last_ts)}</td>
+        <td><span class="status ${esc(c.status)}">${{ pending: "대기", approved: "승인됨", rejected: "거절됨" }[c.status] || c.status}</span></td>
+        <td style="white-space:nowrap">${c.status !== "approved" ? `<button class="b ok" data-kw="${esc(c.keyword)}" data-st="approved">승인</button> ` : ""}${c.status !== "rejected" ? `<button class="b" data-kw="${esc(c.keyword)}" data-st="rejected">거절</button> ` : ""}${c.status !== "pending" ? `<button class="b" data-kw="${esc(c.keyword)}" data-st="pending">대기로</button>` : ""}</td>
+        <td style="white-space:nowrap">${others.length ? `<select data-merge-src="${esc(c.keyword)}"><option value="">→ 선택…</option>${others.map(o => `<option value="${esc(o.keyword)}">${esc(o.keyword)} (${o.count})</option>`).join("")}</select> <button class="b" data-merge-go="${esc(c.keyword)}">합치기</button>` : '<span class="muted small">—</span>'}</td>`;
+      body.appendChild(tr);
+    }
+    body.querySelectorAll("[data-split]").forEach(b => b.addEventListener("click", async () => {
+      const alias = b.dataset.split;
+      if (!confirm(`‘${alias}’를 별도 후보로 분리할까요? 리뷰 기록을 기준으로 횟수·구간을 다시 계산합니다.`)) return;
+      try { const r = await post("candidates/split", { keyword: alias }); msg(`‘${alias}’ 분리됨 (${r.candidate.count}회) · ‘${r.parent.keyword}’ ${r.parent.count}회`); loadCandidates(); } catch (err) { msg(err.message, true); }
+    }));
+    body.querySelectorAll("[data-merge-go]").forEach(b => b.addEventListener("click", async () => {
+      const source = b.dataset.mergeGo, target = body.querySelector(`select[data-merge-src="${CSS.escape(source)}"]`).value;
+      if (!target) { msg("합칠 대상 키워드를 먼저 고르세요.", true); return; }
+      if (!confirm(`‘${source}’를 ‘${target}’에 합칠까요? 횟수·구간·예시가 합쳐지고 ‘${source}’는 별칭으로 남습니다.`)) return;
+      try { const r = await post("candidates/merge", { source, target }); msg(`‘${source}’ → ‘${target}’ 합침 (총 ${r.candidate.count}회)`); loadCandidates(); } catch (err) { msg(err.message, true); }
+    }));
+    body.querySelectorAll("[data-kw]").forEach(b => b.addEventListener("click", async () => {
+      try {
+        const r = await post(`candidates/${encodeURIComponent(b.dataset.kw)}`, { status: b.dataset.st });
+        if (r.guide) $("guide").innerHTML = `<div class="guide"><b>‘${esc(b.dataset.kw)}’ 축 추가 안내</b> — 코드에 반영해야 실제 축이 됩니다.<ol>${r.guide.map(g => `<li>${esc(g)}</li>`).join("")}</ol></div>`;
+        msg(`‘${b.dataset.kw}’ → ${{ approved: "승인", rejected: "거절", pending: "대기" }[b.dataset.st]}`); loadCandidates();
+      } catch (err) { msg(err.message, true); }
+    }));
+  } catch (err) { msg(err.message, true); }
+}
+
+// ---------- danger zones ----------
+async function loadDanger() {
+  try {
+    const d = await api("danger");
+    $("dzth").textContent = d.threshold; $("dztotal").textContent = `${d.zones.length}곳`;
+    const body = $("dzbody"); body.innerHTML = d.zones.length ? "" : '<tr><td colspan="7" class="muted">위험 구간이 없습니다.</td></tr>';
+    for (const z of d.zones) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td><b>${esc(z.name)}</b> <span class="muted small">${esc(z.highway_name || "")}</span></td><td class="num">${Math.round(z.length_m)} m</td><td class="num">${z.tags["무서움"] || 0}</td><td class="num">${z.tags["어두움"] || 0}</td><td class="num">${z.reporter_count}</td>
+        <td>${z.manual === 1 ? '<span class="tag bad">수동 지정</span>' : `<span class="muted small">자동 (${z.danger_count}건)</span>`}</td>
+        <td style="white-space:nowrap"><button class="b ok" data-edge="${esc(z.edge_id)}" data-mode="clear">해제</button> ${z.manual ? `<button class="b" data-edge="${esc(z.edge_id)}" data-mode="auto">자동으로</button>` : ""}</td>`;
+      body.appendChild(tr);
+    }
+    const ov = $("ovbody"); ov.innerHTML = d.overrides.length ? "" : '<tr><td colspan="5" class="muted">수동 설정이 없습니다.</td></tr>';
+    for (const o of d.overrides) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${esc(o.segment)}<div class="small muted">${esc(o.edge_id.length > 60 ? o.edge_id.slice(0, 60) + "…" : o.edge_id)}</div></td><td>${o.forced ? '<span class="tag bad">위험 지정</span>' : '<span class="tag">해제</span>'}</td><td class="small muted">${fmtTs(o.ts)}</td><td>${esc(o.note || "")}</td>
+        <td><button class="b" data-edge="${esc(o.edge_id)}" data-mode="auto">되돌리기</button></td>`;
+      ov.appendChild(tr);
+    }
+    document.querySelectorAll("#tab-danger [data-edge][data-mode]").forEach(b => b.addEventListener("click", () => setDanger(b.dataset.edge, b.dataset.mode, "")));
+  } catch (err) { msg(err.message, true); }
+}
+async function setDanger(edge_id, mode, note) {
+  try { const r = await post("danger", { edge_id, mode, note }); msg(`${{ force: "위험 지정", clear: "해제", auto: "자동으로 복귀" }[mode]} · 엣지 ${r.edges_updated}개 · 현재 위험 ${r.danger ? "예" : "아니오"}`); loadDanger(); }
+  catch (err) { msg(err.message, true); }
+}
+$("dzform").addEventListener("submit", e => { e.preventDefault(); if ($("dzedge").value.trim()) setDanger($("dzedge").value.trim(), "force", $("dznote").value); });
+$("dzform").querySelectorAll("button[type=button]").forEach(b => b.addEventListener("click", () => { if ($("dzedge").value.trim()) setDanger($("dzedge").value.trim(), b.dataset.mode, $("dznote").value); }));
+
+// ---------- data ----------
+$("genform").addEventListener("submit", async e => {
+  e.preventDefault(); const btn = e.target.querySelector("button"); btn.disabled = true;
+  try { const r = await post("data/generate", { count: +$("gencount").value, append: $("genappend").checked }); msg(`더미 리뷰 ${r.generated}건 생성 · 전체 ${r.reviews_total}건`); }
+  catch (err) { msg(err.message, true); } finally { btn.disabled = false; }
+});
+$("resetbtn").addEventListener("click", async () => {
+  if (!confirm("reviews.json을 초기화할까요? 파일은 .bak으로 보관됩니다.")) return;
+  try { const r = await post("data/reset"); msg(r.archived ? `초기화됨 · 보관: ${r.archived}` : "초기화됨 (보관할 파일 없음)"); } catch (err) { msg(err.message, true); }
+});
+
+// ---------- stats ----------
+async function loadStats() {
+  try {
+    const d = await api("stats"), t = d.totals;
+    $("totals").innerHTML = [["리뷰", t.reviews], ["구간 리뷰", t.segment_reviews], ["경로 별점", t.route_ratings], ["신고", t.reports], ["닉네임", t.users], ["AI 분석된 글", t.ai_analyzed], ["축 후보 대기", t.candidates_pending], ["위험 구간", t.danger_zones]]
+      .map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join("");
+    const pt = d.photo_trust || {};
+    $("trustnote").textContent = `사진이 그 구간의 기존 사진과 다른 장소로 판정되면 −${pt.penalty}, 일관되면 +${pt.recover} (최대 1.0). ${pt.min_apply} 미만이면 사진 분석 결과를 그래프에 반영하지 않아요.`;
+    const trustCell = u => {
+      if (u.photo_trust_score == null) return '<td class="num muted">–</td><td class="num muted">–</td>';
+      const v = u.photo_trust_score, col = v >= 0.8 ? "#16a34a" : v >= (pt.min_apply ?? 0.4) ? "#b45309" : "#dc2626";
+      return `<td class="num"><b style="color:${col}">${v.toFixed(2)}</b>${v < (pt.min_apply ?? 0.4) ? ' <small style="color:#dc2626">미반영</small>' : ""}</td><td class="num muted">${u.photo_checks || 0} / ${u.photo_flags || 0}</td>`;
+    };
+    $("byuser").innerHTML = d.by_user.map(u => `<tr><td>${esc(u.user_id)}</td><td class="num">${u.count}</td>${trustCell(u)}</tr>`).join("") || '<tr><td colspan="4" class="muted">없음</td></tr>';
+    $("bypurpose").innerHTML = d.by_purpose.map(p => `<tr><td>${esc(p.name)}</td><td class="num">${p.avg.toFixed(2)}</td><td class="num">${p.count}</td></tr>`).join("") || '<tr><td colspan="3" class="muted">없음</td></tr>';
+    $("tagstat").innerHTML = Object.entries(d.good_tags).map(([k, v]) => `<span class="tag">${esc(k)} ${v}</span>`).join("") + Object.entries(d.bad_tags).map(([k, v]) => `<span class="tag bad">⚑ ${esc(k)} ${v}</span>`).join("");
+    const max = Math.max(1, ...d.visits.map(v => v.page + v.routes));
+    $("visits").innerHTML = d.visits.map(v => `<tr><td>${v.date}</td><td class="num">${v.page}</td><td class="num">${v.routes}</td><td class="num">${v.users}</td><td style="width:40%"><span class="bar" style="width:${Math.round((v.page + v.routes) / max * 100)}%"></span></td></tr>`).reverse().join("") || '<tr><td colspan="5" class="muted">아직 기록이 없어요 (페이지 로드와 /api/route 호출을 셉니다).</td></tr>';
+  } catch (err) { msg(err.message, true); }
+}
+
+// ---------- lightbox: full-size photo view ----------
+function showLightbox(url, caption) {
+  const lb = $("lightbox"); lb.querySelector("img").src = url; lb.querySelector(".cap").textContent = caption || ""; lb.querySelector(".open").href = url; lb.classList.add("show");
+}
+function hideLightbox() { const lb = $("lightbox"); lb.classList.remove("show"); lb.querySelector("img").src = ""; }
+$("lightbox").addEventListener("click", e => { if (!e.target.closest(".open")) hideLightbox(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") hideLightbox(); });
+
+// ---------- boot ----------
+(async () => {
+  try {
+    const st = await api("status");
+    $("apinote").textContent = st.api_enabled ? "Claude 연결됨" : "Claude 꺼짐 (리뷰 글 분석 안 함)";
+    if (!st.enabled) { showLogin(".env에 ADMIN_PASSWORD가 없어 관리자 기능이 꺼져 있습니다. 추가 후 서버를 재시작하세요."); $("loginform").querySelector("button").disabled = true; return; }
+    if (st.logged_in) showApp(); else showLogin();
+  } catch (err) { showLogin(err.message); }
+})();
+</script>
+</body>
+</html>
