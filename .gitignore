@@ -3,6 +3,8 @@ __pycache__/
 venv/
 .venv/
 *.graphml
+# the one graph the server loads: it must ship with the deploy
+!osmnx_outputs/gwanghwamun_walk_2km_scored.graphml
 *.gpkg
 cache/
 .env
@@ -12,3 +14,4 @@ osmnx_outputs/reviews*.json
 osmnx_outputs/reviews.*.bak
 data/
 osmnx_outputs/reviews.jsonl*
+osmnx_outputs/visits.json

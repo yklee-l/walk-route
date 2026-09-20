@@ -1,0 +1,5 @@
+# Runtime only (what server.py imports). The analysis scripts need requirements.txt instead.
+osmnx>=2.0        # reads the scored .graphml (pulls geopandas / pandas / numpy / pyproj)
+networkx>=3.0
+shapely>=2.0
+anthropic>=1.0

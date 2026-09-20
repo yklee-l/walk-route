@@ -1,0 +1,20 @@
+# Railway deployment for walk-route (에움길).
+# Build: Nixpacks detects Python from requirements-server.txt. Start: the bundled HTTP server on $PORT.
+# Data (reviews, profiles, visits, photos) is written under DATA_DIR - mount a volume there or it resets on deploy.
+
+[build]
+builder = "nixpacks"
+buildCommand = "pip install --no-cache-dir -r requirements-server.txt"
+watchPatterns = ["server.py", "routing.py", "candidate_routes.py", "waypoints.py", "web/**", "requirements-server.txt"]
+
+[deploy]
+startCommand = "python server.py --host 0.0.0.0"
+healthcheckPath = "/api/status"
+healthcheckTimeout = 300          # loading the 16 MB graph takes ~20-40 s on a cold start
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+numReplicas = 1                   # the graph lives in memory and reviews are files: a second replica would diverge
+
+[env]
+HOST = "0.0.0.0"
+DATA_DIR = "/data"                # mount a Railway volume here to keep reviews and photos across deploys
