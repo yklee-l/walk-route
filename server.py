@@ -706,6 +706,17 @@ class ProfileStore:
         self.path.write_text(json.dumps(self.profiles, ensure_ascii=False, indent=1), encoding="utf-8")
         return profile["photo_trust_score"]
 
+    def rename(self, old_id: str, new_id: str, merge: bool = False) -> bool:
+        """Move a profile to another nickname; with merge the existing target profile is kept and the old one dropped."""
+        if old_id not in self.profiles:
+            return False
+        profile = self.profiles.pop(old_id)
+        if new_id not in self.profiles or not merge:
+            self.profiles[new_id] = profile
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps(self.profiles, ensure_ascii=False, indent=1), encoding="utf-8")
+        return True
+
     def put(self, nickname: str, data: dict[str, object]) -> dict[str, object]:
         existing = self.profiles.get(nickname) or {}
         profile = {k: data[k] for k in self.KEEP if k in data}
@@ -935,6 +946,23 @@ class ReviewStore:
             parent["first_ts"], parent["last_ts"] = rest["first_ts"], rest["last_ts"]
         self.save()
         return self.candidates[alias], parent
+
+    def rename_user(self, old_id: str, new_id: str) -> dict[str, int]:
+        """Replace a nickname everywhere the store keeps one (reviews, reports, 도움돼요 lists) and re-save."""
+        counts = {"reviews": 0, "negatives": 0, "helpful": 0}
+        for entry, key in [(r, "reviews") for r in self.reviews] + [(n, "negatives") for n in self.negatives]:
+            if entry.get("user_id") == old_id:
+                entry["user_id"] = new_id
+                entry["id"] = entry_id(entry)  # the id is derived from the nickname
+                counts[key] += 1
+            helpful = entry.get("helpful")
+            if isinstance(helpful, list) and old_id in helpful:
+                entry["helpful"] = [new_id if u == old_id else u for u in helpful]
+                counts["helpful"] += 1
+        if counts["reviews"] or counts["negatives"]:
+            self.rebuild()  # per-user weighting is recomputed from the new nickname
+        self.save()
+        return counts
 
     def merge_candidates(self, source: str, target: str) -> dict[str, object] | None:
         """Fold candidate `source` into `target` (admin): counts add up, edges / examples / aliases union, source removed."""
@@ -1233,6 +1261,18 @@ class VisitLog:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(self.days, ensure_ascii=False), encoding="utf-8")
         self.dirty = False
+
+    def rename(self, old_id: str, new_id: str) -> int:
+        days = 0
+        for day in self.days.values():
+            users = day.get("users") or []
+            if old_id in users:
+                day["users"] = list(dict.fromkeys(new_id if u == old_id else u for u in users))
+                days += 1
+        if days:
+            self.dirty = True
+            self.flush()
+        return days
 
     def rows(self, days: int = 30) -> list[dict[str, object]]:
         return [{"date": d, "page": v.get("page", 0), "routes": v.get("routes", 0), "users": len(v.get("users", []))} for d, v in sorted(self.days.items())[-days:]]
@@ -2229,6 +2269,23 @@ class RouteHandler(SimpleHTTPRequestHandler):
                 self.reviews.rebuild()
                 self.reviews.save()
                 return self.send_json({"ok": True, "generated": len(reviews), "reviews_total": len(self.reviews.reviews)})
+            if action == "rename-user":
+                old_id, new_id = str(body.get("old_id", "")).strip(), str(body.get("new_id", "")).strip()[:30]
+                merge = bool(body.get("merge"))
+                if not old_id or not new_id or old_id == new_id:
+                    return self.send_json({"error": "old_id와 new_id가 필요합니다 (서로 달라야 합니다)."}, HTTPStatus.BAD_REQUEST)
+                taken = new_id in self.profiles.profiles or any(e.get("user_id") == new_id for e in self.reviews.reviews + self.reviews.negatives)
+                if taken and not merge:
+                    return self.send_json({"error": f"'{new_id}'는 이미 쓰이는 닉네임입니다. 합치려면 merge: true를 보내세요."}, HTTPStatus.CONFLICT)
+                changed = self.reviews.rename_user(old_id, new_id)
+                changed["profile"] = self.profiles.rename(old_id, new_id, merge)
+                changed["visit_days"] = self.visits.rename(old_id, new_id)
+                RouteHandler.route_cache.clear()
+                RouteHandler.ranking_cache.clear()
+                print(f"[admin] rename-user {old_id!r} -> {new_id!r}: {changed}", flush=True)
+                if not (changed["reviews"] or changed["negatives"] or changed["profile"]):
+                    return self.send_json({"error": f"'{old_id}' 닉네임을 찾지 못했습니다.", "changed": changed}, HTTPStatus.NOT_FOUND)
+                return self.send_json({"ok": True, "old_id": old_id, "new_id": new_id, "changed": changed})
             if action in ("import-data", "data/import"):
                 return self.send_json(*self.import_data(body))
             if action == "data/reset":
