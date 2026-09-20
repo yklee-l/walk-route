@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>에움길 — 서비스 소개</title>
-<meta name="description" content="에움길: 취향 기반 도보 경로 추천 서비스. 차량 노출·분위기·공원·가로수 4개 축에서 출발해, 사용자 리뷰에서 새로운 취향 축을 계속 발굴합니다.">
+<meta name="description" content="에움길: 취향 기반 도보 경로 추천 서비스. 조용한 길, 분위기 좋은 길, 나무 그늘이 있는 길을 골라 걷고, 남긴 평가가 다음 추천에 반영됩니다.">
 <link rel="icon" href="logo.png">
 <style>
   :root {
@@ -37,31 +37,24 @@
   .tag.ai { background: #ede9fe; color: #5b21b6; }
   .tag.new { background: #ecfdf5; color: #047857; }
   .note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
-  .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; background: var(--track); border-radius: 8px; padding: 10px 12px; color: #3f3f46; overflow-x: auto; white-space: nowrap; }
+  .quote { margin-top: 10px; padding: 10px 14px; background: var(--panel); border-left: 3px solid var(--border); border-radius: 0 8px 8px 0; font-size: 13.5px; color: #3f3f46; }
 
-  /* 흐름 4단계 */
   .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .flow div { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 10px; text-align: center; }
   .flow .e { font-size: 22px; display: block; margin-bottom: 4px; }
   .flow b { font-size: 13px; display: block; }
   .flow small { font-size: 11.5px; color: var(--muted); line-height: 1.45; display: block; margin-top: 2px; }
 
-  /* 4축 */
   .axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .axis { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .axis { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; border-top: 4px solid var(--c, var(--accent)); }
   .axis b { display: block; font-size: 14.5px; margin-bottom: 4px; }
   .axis small { color: var(--muted); font-size: 12.5px; line-height: 1.55; display: block; }
-  .axis .bar { height: 6px; border-radius: 999px; background: var(--track); margin-top: 10px; overflow: hidden; }
-  .axis .bar i { display: block; height: 100%; border-radius: 999px; background: var(--c, var(--accent)); }
 
-  /* β 후보 */
   .betas { display: grid; gap: 8px; }
   .beta { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--border); border-left: 6px solid var(--c); border-radius: var(--radius); padding: 12px 14px; }
   .beta b { font-size: 14.5px; white-space: nowrap; }
   .beta small { color: var(--muted); font-size: 12.5px; }
-  .beta .n { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
 
-  /* 새 축 파이프라인 */
   .pipe { display: grid; gap: 8px; margin-top: 12px; }
   .pipe .step { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
   .pipe .num { width: 30px; height: 30px; border-radius: 50%; background: #ecfdf5; color: #047857; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
@@ -69,9 +62,7 @@
   .pipe small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.55; margin-top: 2px; }
   .kw { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
   .kw span { font-size: 12px; background: var(--bg); border: 1px dashed #a7f3d0; color: #047857; border-radius: 999px; padding: 3px 10px; }
-  .kw span b { font-weight: 700; }
 
-  /* URL 표 */
   table { width: 100%; border-collapse: collapse; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; font-size: 13.5px; }
   th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
   th { background: #eef2f7; font-size: 12.5px; color: var(--muted); font-weight: 700; }
@@ -93,7 +84,6 @@
     header.hero img { width: 120px; }
     h2 { font-size: 18px; }
     .axes, .flow { grid-template-columns: repeat(2, 1fr); }
-    .formula { font-size: 11.5px; }
     th, td { padding: 8px 10px; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -116,73 +106,59 @@
     <h2><span class="no">1</span>서비스 개요</h2>
     <p class="lead">가장 짧은 길이 늘 가장 걷고 싶은 길은 아닙니다.</p>
     <div class="card">
-      <p>에움길은 <b>“가장 짧은 길”이 아니라 “내가 걷고 싶은 길”</b>을 추천하는 도보 경로 서비스입니다. OpenStreetMap 보행 네트워크의 길 조각마다 차량 노출·분위기·공원 접근성·가로수 밀도를 점수로 매겨 두고, 사용자의 취향을 가중치로 바꿔 경로를 계산합니다.</p>
-      <p>버튼으로 목적(데이트·혼자 산책·가족 나들이·관광·빠르게 이동)을 고르거나, <span class="tag ai">AI</span> 입력창에 <i>“조용하고 카페 많은 길로 천천히”</i>처럼 적기만 해도 됩니다.</p>
+      <p>에움길은 <b>“가장 짧은 길”이 아니라 “내가 걷고 싶은 길”</b>을 찾아 주는 도보 경로 서비스입니다. 차가 적게 다니는 길, 분위기 좋은 거리, 공원을 끼고 도는 길, 나무 그늘이 있는 길을 구분해 두고 원하는 쪽으로 안내합니다.</p>
+      <p>목적(데이트·혼자 산책·가족 나들이·관광·빠르게 이동)을 골라도 되고, 입력창에 <i>“조용하고 카페 많은 길로 천천히”</i>처럼 편하게 적어도 됩니다.</p>
     </div>
     <div class="flow" style="margin-top:12px">
-      <div><span class="e">🎯</span><b>취향 입력</b><small>버튼 또는 자연어</small></div>
-      <div><span class="e">🛤️</span><b>경로 3개</b><small>최단·균형·맞춤 비교</small></div>
+      <div><span class="e">🎯</span><b>취향 고르기</b><small>버튼 또는 한 문장</small></div>
+      <div><span class="e">🛤️</span><b>경로 비교</b><small>세 가지 중 선택</small></div>
       <div><span class="e">⭐</span><b>걷고 평가</b><small>구간 리뷰·사진</small></div>
-      <div><span class="e">🔁</span><b>다음 추천에 반영</b><small>점수·태그·새 축</small></div>
+      <div><span class="e">🔁</span><b>다음 추천에 반영</b><small>모두의 지도로</small></div>
     </div>
   </section>
 
   <section>
-    <h2><span class="no">2</span>핵심 기술</h2>
-    <p class="lead">경로 하나를 고르기까지 네 가지 장치가 함께 움직입니다.</p>
-
-    <div class="card">
-      <h3><span class="e">🧭</span>4축 가중치 시스템</h3>
-      <p>길 조각마다 네 가지 점수를 0~1 페널티로 정규화하고, 사용자가 고른 강도(0~4)를 곱해 비용에 더합니다.</p>
-      <div class="axes" style="margin-top:12px">
-        <div class="axis" style="--c:#dc2626"><b>🚗 차량 노출도</b><small>도로 등급으로 산출 (보행로 0 → 대로 4). 조용한 길을 원하면 이 축을 올립니다.</small><div class="bar"><i style="width:82%"></i></div></div>
-        <div class="axis" style="--c:#7c3aed"><b>✨ 분위기</b><small>카페·베이커리·갤러리 밀도와 생활도로 여부. 리뷰 점수가 쌓이면 함께 조정됩니다.</small><div class="bar"><i style="width:68%"></i></div></div>
-        <div class="axis" style="--c:#16a34a"><b>🌳 공원 접근성</b><small>가장 가까운 공원까지의 거리(300 m에서 포화). 쉬어갈 곳이 있는 길을 선호할 때 씁니다.</small><div class="bar"><i style="width:74%"></i></div></div>
-        <div class="axis" style="--c:#65a30d"><b>🌿 가로수 밀도</b><small>서울시 가로수 위치 데이터 기준 100 m당 그루 수(15그루에서 포화). 그늘 있는 길을 찾습니다.</small><div class="bar"><i style="width:60%"></i></div></div>
-      </div>
-      <p class="note">비용 = 길이 × (1 + 회피 페널티) + 길이 × Σ(가중치 × 축 페널티) — 모든 항이 0 이상이라 최단 경로 알고리즘을 그대로 쓸 수 있습니다.</p>
+    <h2><span class="no">2</span>이런 길을 찾아 줍니다</h2>
+    <p class="lead">네 가지 기준을 원하는 만큼 섞어 경로를 만듭니다.</p>
+    <div class="axes">
+      <div class="axis" style="--c:#dc2626"><b>🚗 차를 피해서</b><small>큰길 대신 차가 드문 이면도로와 보행자 길 위주로 안내합니다.</small></div>
+      <div class="axis" style="--c:#7c3aed"><b>✨ 분위기 있게</b><small>카페와 작은 가게가 이어지는, 걷는 재미가 있는 거리를 고릅니다.</small></div>
+      <div class="axis" style="--c:#16a34a"><b>🌳 공원을 끼고</b><small>쉬어갈 곳이 가까운, 탁 트인 길로 이어 줍니다.</small></div>
+      <div class="axis" style="--c:#65a30d"><b>🌿 나무 그늘 아래</b><small>가로수가 늘어선 길을 우선해 여름에도 걷기 좋게 합니다.</small></div>
     </div>
 
-    <div class="card">
-      <h3><span class="e">⏳</span>시간 감쇠</h3>
-      <p>리뷰는 남긴 시점에서 멀어질수록 영향력이 줄어듭니다. <b>반감기 30일</b>로, 오늘 남긴 리뷰가 100 %라면 30일 뒤에는 50 %, 60일 뒤에는 25 %만 반영됩니다.</p>
-      <div class="formula" style="margin-top:10px">가중치 = 0.5 ^ (경과일 / 30)</div>
-      <p class="note">공사 중이던 골목이 정리되거나 밤길이 밝아지는 것처럼 길은 계속 변합니다. 점수·태그·사진 분석·위험 신고 모두 같은 규칙으로 옅어져 최신 현황이 우선 반영됩니다.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="e">🛤️</span>우회 허용 범위(β)로 만드는 3가지 후보</h3>
-      <p>최단 경로 길이의 몇 배까지 돌아가도 좋은지를 예산으로 정하고, 그 예산 안에서 취향 반영을 최대로 끌어올린 경로를 찾습니다.</p>
+    <div class="card" style="margin-top:14px">
+      <h3><span class="e">🛤️</span>세 가지 경로를 한눈에</h3>
+      <p>같은 출발지와 도착지라도 얼마나 돌아가도 괜찮은지에 따라 길이 달라집니다. 에움길은 세 가지를 나란히 보여 주고, 각 경로가 몇 분 더 걸리는 대신 무엇이 나아지는지 알려 줍니다.</p>
       <div class="betas" style="margin-top:12px">
-        <div class="beta" style="--c:#4A90D9"><b>β 1.0 · 최단</b><small>가장 짧은 길 그대로</small><span class="n">기준</span></div>
-        <div class="beta" style="--c:#50C878"><b>β 1.15 · 균형</b><small>15 %까지 돌아가며 취향 반영</small><span class="n">+15 %</span></div>
-        <div class="beta" style="--c:#FF8C69"><b>β 1.3 · 맞춤</b><small>30 %까지 돌아가 취향을 최대로</small><span class="n">+30 %</span></div>
+        <div class="beta" style="--c:#4A90D9"><b>최단</b><small>가장 빠르게 도착하는 길</small></div>
+        <div class="beta" style="--c:#50C878"><b>균형</b><small>조금만 돌아가며 취향을 반영한 길</small></div>
+        <div class="beta" style="--c:#FF8C69"><b>맞춤</b><small>더 돌아가더라도 취향을 최대한 살린 길</small></div>
       </div>
-      <p class="note">예: 3.1 km 구간에서 +3분을 더 걸어 차량 노출을 80 % 줄인 경로를 찾아냅니다. 세 후보가 같은 길로 수렴하면 중복은 자동으로 정리됩니다.</p>
+      <div class="quote">“추천 경로 1 · 18분 · 1.3 km — 3분 더 걸리지만 차량 소음이 크게 줄고 가로수가 많은 길입니다.”</div>
     </div>
 
     <div class="card">
-      <h3><span class="e">⚙️</span>Dijkstra 기반 경로 탐색</h3>
-      <p><b>networkx + osmnx</b>로 광화문 반경 2 km 보행 네트워크를 그래프로 불러와, 위 비용을 간선 가중치로 삼아 Dijkstra 최단 경로를 계산합니다. 우회 예산을 만족하는 취향 강도(λ)는 비용이 같아지는 지점을 좁혀 가며 찾습니다.</p>
-      <p class="note">계단 제외(유모차·휠체어), 최대 6곳까지의 경유지 방문 순서 최적화, 같은 길 되돌아오기 억제도 같은 그래프 위에서 처리합니다.</p>
+      <h3><span class="e">🗺️</span>걷기 좋게, 더 자세히</h3>
+      <p>골목 단위로 방향을 안내하고, 가고 싶은 곳을 들르도록 경유지를 최대 여섯 곳까지 넣으면 방문 순서를 알아서 정리해 줍니다. 순서를 직접 정할 수도 있습니다.</p>
+      <p>유모차나 휠체어, 무릎이 불편할 때는 <b>계단이 없는 길</b>로만 안내하고, 경로 주변의 카페·음식점·볼거리도 지도에서 바로 확인할 수 있습니다.</p>
     </div>
   </section>
 
   <section>
-    <h2><span class="no">3</span>축은 네 개로 고정되지 않습니다</h2>
-    <p class="lead">사람들이 실제로 말하는 기준을 리뷰에서 찾아 새로운 축 후보로 키웁니다.</p>
+    <h2><span class="no">3</span>기준은 네 가지로 끝나지 않습니다</h2>
+    <p class="lead">사람들이 실제로 말하는 이유를 리뷰에서 찾아 새로운 기준으로 키웁니다.</p>
     <div class="card">
-      <p>처음 정한 네 축으로는 “벚꽃이 예쁘다”, “야경이 좋다”, “길고양이가 많다” 같은 이유를 담을 수 없습니다. 에움길은 이런 표현을 버리지 않고 <b>새 축 후보</b>로 모읍니다.</p>
+      <p>처음 정한 네 가지로는 “벚꽃이 예쁘다”, “야경이 좋다”, “길고양이가 많다” 같은 이유를 담을 수 없습니다. 에움길은 이런 표현을 흘려보내지 않고 <b>새로운 기준 후보</b>로 모읍니다.</p>
       <div class="pipe">
-        <div class="step"><span class="num">1</span><span><b>발굴</b><small>리뷰 글과 사진을 AI가 읽고, 기존 축·태그로 표현되지 않는 키워드를 뽑습니다. 사람·차량·날씨처럼 그때만의 상황은 제외하고, 길에 계속 남아 있는 특징만 후보가 됩니다.</small></span></div>
-        <div class="step"><span class="num">2</span><span><b>정리</b><small>뜻이 같은 표현은 AI가 판정해 하나로 합칩니다. ‘가로수길’과 ‘은행나무’, ‘한옥 담장’과 ‘전통건축’처럼요. 잘못 묶였다면 관리자가 다시 분리할 수 있고, 횟수는 리뷰 원문 기준으로 정확히 다시 계산됩니다.</small></span></div>
-        <div class="step"><span class="num">3</span><span><b>검토</b><small>관리자 페이지에서 후보별 등장 횟수·구간 수·예시 문장을 보고 승인 / 거절 / 보류를 정합니다. 사람의 판단을 거친 것만 다음 단계로 갑니다.</small></span></div>
-        <div class="step"><span class="num">4</span><span><b>축으로 승격</b><small>승인하면 그 키워드를 새 축으로 만드는 절차(데이터 수집 → 비용 함수 → 가중치 입력 UI → 검증)를 안내합니다. 네 축과 같은 방식으로 경로 계산에 들어갑니다.</small></span></div>
+        <div class="step"><span class="num">1</span><span><b>찾아내기</b><small>리뷰 글과 사진에서, 기존 기준으로는 표현되지 않는 특징을 뽑아냅니다. 그날의 날씨나 지나가던 차처럼 잠깐의 상황은 빼고, 그 길에 계속 남아 있는 것만 후보가 됩니다.</small></span></div>
+        <div class="step"><span class="num">2</span><span><b>묶어 정리하기</b><small>뜻이 같은 표현은 하나로 합칩니다. ‘가로수길’과 ‘은행나무’, ‘한옥 담장’과 ‘전통건축’처럼요. 잘못 묶였다면 다시 떼어낼 수 있습니다.</small></span></div>
+        <div class="step"><span class="num">3</span><span><b>사람이 검토하기</b><small>어떤 표현이 몇 번, 어느 구간에서 나왔는지와 실제 문장을 함께 보고 채택할지 정합니다.</small></span></div>
+        <div class="step"><span class="num">4</span><span><b>새 기준으로 추가</b><small>채택된 특징은 기존 네 가지와 똑같이 경로를 고르는 기준이 됩니다. 쓰는 사람이 늘어날수록 고를 수 있는 기준도 늘어납니다.</small></span></div>
       </div>
-      <p class="note" style="margin-top:12px">실제로 쌓인 후보들 — 괄호 안은 등장 횟수, <b>=</b> 뒤는 같은 뜻으로 합쳐진 표현입니다.</p>
+      <p class="note" style="margin-top:12px">지금까지 리뷰에서 모인 후보들입니다.</p>
       <div class="kw">
-        <span><b>은행나무</b> (4) = 가로수길</span><span><b>전통건축</b> (3) = 한옥 담장</span><span><b>가로등</b> (3)</span><span><b>화단</b> (3)</span>
-        <span><b>광장</b> (2)</span><span><b>볼거리</b> (2)</span><span><b>길고양이</b></span><span><b>포토스팟</b></span><span><b>치안</b></span><span><b>골목</b></span><span><b>유모차</b></span>
+        <span>은행나무 · 가로수길</span><span>전통건축 · 한옥 담장</span><span>가로등</span><span>화단</span><span>광장</span><span>볼거리</span><span>길고양이</span><span>포토스팟</span><span>치안</span><span>골목</span><span>유모차</span>
       </div>
     </div>
   </section>
@@ -192,60 +168,60 @@
     <p class="lead">걷고 남긴 기록이 다음 사람의 경로를 바꿉니다.</p>
     <div class="card">
       <h3><span class="e">⭐</span>구간 리뷰</h3>
-      <p>경로의 한 구간을 눌러 0~10점과 좋았던 점·나빴던 점 태그, 한 줄 평, 사진을 남깁니다. 점수는 그 길의 분위기 값을, 태그는 회피 정도를 즉시 움직입니다. 길 이름으로 검색해 경로 없이도 리뷰할 수 있습니다.</p>
-      <p class="note">내가 남긴 리뷰는 내 경로에 더 크게 반영되고, 다른 사람 닉네임은 첫 글자만 보이도록 가립니다(이영규 → 이**).</p>
+      <p>경로의 한 구간을 눌러 점수와 좋았던 점·아쉬웠던 점, 한 줄 평, 사진을 남깁니다. 남긴 평가는 바로 그 길의 점수에 반영되고, 길 이름으로 검색해 경로를 찾지 않고도 리뷰할 수 있습니다.</p>
+      <p class="note">내가 남긴 평가는 내 경로에 더 크게 반영되고, 다른 사람 닉네임은 첫 글자만 보이도록 가립니다(이영규 → 이**).</p>
+    </div>
+    <div class="card">
+      <h3><span class="e">⏳</span>오래된 평가는 옅어집니다</h3>
+      <p>공사하던 골목이 정리되고 어둡던 길에 가로등이 생기듯 길은 계속 변합니다. 오래전에 남은 평가일수록 영향력이 서서히 줄어들어, 지금의 모습이 먼저 반영됩니다.</p>
     </div>
     <div class="card">
       <h3><span class="e">🏆</span>인기 경로 · <span class="e">⚠️</span>위험 구간</h3>
-      <p>최근 일주일·한 달 동안 리뷰가 3건 이상 쌓인 구간을 평점과 리뷰 수로 정렬해 보여 주고, 리뷰 글을 AI가 한 줄로 요약합니다. 마음에 들면 그대로 경유지로 넣어 경로를 다시 찾을 수 있습니다.</p>
-      <p>반대로 ‘무서움·어두움’ 신고가 일정 수준을 넘은 구간은 <b>모든 사용자의 경로에서 최대한 우회</b>하고, 지도에서 ⚠️로 확인할 수 있습니다.</p>
-    </div>
-    <div class="card">
-      <h3><span class="e">📍</span>주변 둘러보기 · 경유지</h3>
-      <p>카카오 로컬 API로 경로 주변의 카페·음식점·볼거리를 표시하고, 들르고 싶은 곳은 경유지로 추가하면 방문 순서를 자동으로 최적화합니다(직접 정할 수도 있습니다).</p>
+      <p>최근 한 주·한 달 동안 좋은 평가가 모인 구간을 순위로 보여 주고, 사람들이 남긴 말을 한 줄로 요약해 줍니다. 마음에 들면 그 구간을 경유지로 넣어 바로 경로를 다시 찾을 수 있습니다.</p>
+      <p>반대로 ‘무섭다·어둡다’는 신고가 모인 구간은 <b>모두의 경로에서 최대한 피해</b> 가고, 지도에서 ⚠️로 확인할 수 있습니다.</p>
     </div>
   </section>
 
   <section>
-    <h2><span class="no">5</span>AI 활용</h2>
-    <p class="lead">Anthropic Claude(claude-opus-5)를 서비스 곳곳에 씁니다.</p>
+    <h2><span class="no">5</span>AI가 돕는 방식</h2>
+    <p class="lead">Claude가 사람의 말과 사진을 이해해 경로에 옮깁니다.</p>
     <div class="card">
-      <h3><span class="e">💬</span>자연어 취향 → 가중치 변환 <span class="tag ai">Structured Outputs</span></h3>
-      <p>“조용하고 카페 많은 길로 천천히”를 네 축의 가중치와 계단 제외 여부, 피하고 싶은 신고 태그, 출발·도착·경유지 지명으로 바꿉니다. JSON 스키마로 응답 형식을 고정하고 서버가 값 범위를 다시 검증해, 해석 결과를 그대로 경로 탐색에 넣습니다.</p>
+      <h3><span class="e">💬</span>말한 대로 찾아 주기</h3>
+      <p>“조용하고 카페 많은 길로 천천히”라고 적으면 무엇을 중요하게 볼지, 계단은 피할지, 어디서 어디로 갈지까지 읽어 내 경로에 반영합니다. 출발지나 도착지가 빠졌다면 검색이나 지도에서 고르도록 안내합니다.</p>
     </div>
     <div class="card">
-      <h3><span class="e">📝</span>경로 추천 이유 · 리뷰 요약</h3>
-      <p>후보 경로의 실제 수치(추가 소요 시간, 차량 노출 감소율, 우회한 신고 구간)만 근거로 추천 이유를 한 문장씩 만들고, 인기 구간의 리뷰 글은 한 줄 요약으로 정리합니다.</p>
+      <h3><span class="e">📝</span>추천 이유 설명하기</h3>
+      <p>왜 이 길을 권하는지 한 문장으로 알려 줍니다. “신고가 접수된 구간을 우회했고 3분 더 걸립니다”처럼, 실제 그 경로의 정보만 가지고 설명합니다.</p>
     </div>
     <div class="card">
-      <h3><span class="e">🏷️</span>리뷰 글에서 태그·축 신호 추출 <span class="tag new">새 축 발굴</span></h3>
-      <p>“밤엔 가로등이 적어 어두워요” 같은 문장에서 어느 축이 어느 방향으로 움직여야 하는지(−1~1)와 해당하는 태그를 뽑아냅니다. 기존 축으로 담기 어려운 표현은 새 축 후보로 모으고, 비슷한 말끼리 자동으로 묶습니다.</p>
+      <h3><span class="e">🏷️</span>리뷰에서 특징 읽어 내기 <span class="tag new">새 기준 발굴</span></h3>
+      <p>“밤엔 가로등이 적어 어두워요” 같은 문장에서 그 길의 특징과 태그를 알아서 정리하고, 기존 기준으로 담기 어려운 표현은 새 기준 후보로 모읍니다.</p>
     </div>
     <div class="card">
-      <h3><span class="e">📷</span>사진 분석과 장소 신뢰도 검증 <span class="tag ai">Vision</span></h3>
-      <p>리뷰 사진에서 포장 상태·가로수·경사처럼 <b>잘 변하지 않는 특징만</b> 태그로 남기고, 그날의 차량·혼잡·날씨 같은 일시적인 상황은 분리해 분위기 참고로만 씁니다.</p>
-      <p>또한 <b>이 사진을 믿어도 되는지</b>를 함께 판단합니다. 같은 구간에 먼저 올라온 사진과 비교해 실제로 그 장소에서 찍혔는지 확인하고, 어긋난 사진이 반복되는 사용자는 사진이 경로에 미치는 영향을 점차 줄입니다.</p>
-      <p class="note">사진 분석 결과는 사용자가 확인한 뒤에만 반영되며, 신뢰도가 낮으면 기록만 남고 경로 점수에는 쓰이지 않습니다.</p>
+      <h3><span class="e">📷</span>사진 살펴보고 믿을 만한지 확인하기</h3>
+      <p>사진에서 포장 상태나 가로수처럼 <b>잘 변하지 않는 특징만</b> 골라 반영하고, 그날의 차량·혼잡·날씨는 따로 구분합니다.</p>
+      <p>또한 <b>이 사진을 믿어도 되는지</b>를 함께 살핍니다. 같은 구간에 먼저 올라온 사진과 비교해 정말 그 장소에서 찍은 것인지 확인하고, 어긋난 사진이 반복되면 그 사람의 사진이 경로에 미치는 영향을 점차 줄입니다.</p>
+      <p class="note">사진에서 찾은 내용은 올린 사람이 확인한 뒤에만 반영됩니다.</p>
     </div>
   </section>
 
   <section>
     <h2><span class="no">6</span>서비스 구성</h2>
-    <p class="lead">한 서버가 아래 화면을 모두 제공합니다.</p>
+    <p class="lead">한 곳에서 아래 화면을 모두 쓸 수 있습니다.</p>
     <table>
       <tr><th style="width:34%">주소</th><th>화면</th></tr>
-      <tr><td><code>/</code></td><td>경로 탐색 — 취향 설정, 경로 3개 비교, 상세 길 안내, 구간 리뷰</td></tr>
-      <tr><td><code>/ranking</code></td><td>이번 주·이번 달 인기 구간 순위와 AI 요약</td></tr>
-      <tr><td><code>/review</code></td><td>모바일 전용 전체화면 리뷰 작성 (구간·경로 정보 포함)</td></tr>
+      <tr><td><code>/</code></td><td>경로 찾기 — 취향 고르기, 세 경로 비교, 길 안내, 구간 리뷰</td></tr>
+      <tr><td><code>/ranking</code></td><td>이번 주·이번 달 인기 구간과 한 줄 요약</td></tr>
+      <tr><td><code>/review</code></td><td>휴대폰에서 넓게 쓰는 리뷰 작성 화면</td></tr>
       <tr><td><code>/about</code></td><td>지금 보고 계신 서비스 소개</td></tr>
-      <tr><td><code>/admin</code></td><td>운영자 화면 — 리뷰 모니터링, <b>새 축 후보 승인·합치기·분리</b>, 위험 구간 관리, 데이터·통계 (비밀번호 필요)</td></tr>
+      <tr><td><code>/admin</code></td><td>운영자 화면 — 리뷰 확인, <b>새 기준 후보 검토</b>, 위험 구간 관리, 통계 (비밀번호 필요)</td></tr>
     </table>
-    <p class="note">모바일에서는 지도와 경로 카드를 한 화면에서 보도록 3단계 시트로 구성하고, 지도는 캔버스 렌더링으로 그려 터치 반응을 높였습니다.</p>
+    <p class="note">휴대폰에서는 지도와 추천 경로를 한 화면에서 함께 볼 수 있도록 구성했습니다.</p>
   </section>
 
   <div class="cta">
     <h2 style="margin-bottom:10px">지금 걸어볼까요?</h2>
-    <p>출발지와 도착지만 정하면 3가지 경로를 바로 비교할 수 있습니다.</p>
+    <p>출발지와 도착지만 정하면 세 가지 경로를 바로 비교할 수 있습니다.</p>
     <a class="btn" href="https://walk-route-production.up.railway.app">🚶 에움길 서비스 열기 →</a>
     <div class="sub">
       <a href="https://walk-route-production.up.railway.app/ranking">🏆 인기 경로</a>
@@ -254,7 +230,7 @@
   </div>
 
   <footer>
-    데이터 · OpenStreetMap contributors · 서울시 가로수 위치 정보 · VWorld(국토교통부) · 카카오 로컬 API<br>
+    데이터 · OpenStreetMap contributors · 서울시 가로수 위치 정보 · VWorld(국토교통부) · 카카오<br>
     에움길 (walk-route) — 취향 기반 도보 경로 추천 서비스
   </footer>
 
