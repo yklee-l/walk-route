@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>에움길 — 서비스 소개</title>
+<meta name="description" content="에움길: 취향 기반 도보 경로 추천 서비스. 차량 노출·분위기·공원·가로수 4개 축과 사용자 리뷰로 '내가 걷고 싶은 길'을 찾아 줍니다.">
+<link rel="icon" href="logo.png">
+<style>
+  :root {
+    --bg: #ffffff; --panel: #fafafa; --text: #18181b; --muted: #71717a; --faint: #a1a1aa;
+    --border: #e4e4e7; --track: #ececef; --accent: #2563eb; --accent-ink: #ffffff;
+    --good: #15803d; --bad: #b91c1c;
+    --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.10);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif; color: var(--text); background: var(--panel); -webkit-text-size-adjust: 100%; word-break: keep-all; }
+  a { color: var(--accent); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 18px calc(48px + env(safe-area-inset-bottom)); }
+
+  /* ---- hero ---- */
+  header.hero { background: linear-gradient(180deg, #e8f1ff 0%, var(--panel) 100%); padding: calc(40px + env(safe-area-inset-top)) 0 28px; text-align: center; }
+  header.hero img { width: 150px; height: auto; display: block; margin: 0 auto 16px; }
+  header.hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 8px; }
+  header.hero p { margin: 0 auto; max-width: 460px; font-size: 16px; color: #3f3f46; }
+  header.hero .where { display: inline-block; margin-top: 14px; padding: 5px 12px; border-radius: 999px; background: var(--bg); box-shadow: var(--shadow); font-size: 12.5px; font-weight: 600; color: var(--muted); }
+
+  /* ---- sections ---- */
+  section { margin-top: 30px; }
+  h2 { font-size: 20px; font-weight: 800; margin: 0 0 6px; letter-spacing: -.01em; }
+  h2 .no { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; margin-right: 8px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-size: 13px; vertical-align: 2px; }
+  .lead { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 10px; box-shadow: var(--shadow); }
+  .card h3 { font-size: 15.5px; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card h3 .e { font-size: 18px; }
+  .card p { margin: 0; font-size: 14px; color: #3f3f46; }
+  .card p + p { margin-top: 8px; }
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--track); color: var(--muted); }
+  .tag.ai { background: #ede9fe; color: #5b21b6; }
+
+  /* 4-axis grid */
+  .axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .axis { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .axis b { display: block; font-size: 14.5px; margin-bottom: 4px; }
+  .axis small { color: var(--muted); font-size: 12.5px; line-height: 1.55; display: block; }
+  .axis .bar { height: 6px; border-radius: 999px; background: var(--track); margin-top: 10px; overflow: hidden; }
+  .axis .bar i { display: block; height: 100%; border-radius: 999px; background: var(--c, var(--accent)); }
+
+  /* beta routes */
+  .betas { display: grid; gap: 8px; }
+  .beta { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--border); border-left: 6px solid var(--c); border-radius: var(--radius); padding: 12px 14px; }
+  .beta b { font-size: 14.5px; white-space: nowrap; }
+  .beta small { color: var(--muted); font-size: 12.5px; }
+  .beta .n { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+
+  .formula { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; background: var(--track); border-radius: 8px; padding: 10px 12px; color: #3f3f46; overflow-x: auto; white-space: nowrap; }
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+
+  /* CTA */
+  .cta { margin-top: 34px; text-align: center; background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 26px 20px; box-shadow: var(--shadow); }
+  .cta h2 { justify-content: center; }
+  .cta p { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 15.5px; text-decoration: none; box-shadow: 0 6px 18px rgba(37,99,235,.28); }
+  .btn:hover { filter: brightness(1.05); }
+  .sub { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .sub a { font-size: 13px; color: var(--muted); text-decoration: none; border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; background: var(--bg); }
+  .sub a:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer { margin-top: 28px; text-align: center; color: var(--faint); font-size: 12px; }
+
+  @media (max-width: 560px) {
+    header.hero { padding-top: calc(28px + env(safe-area-inset-top)); }
+    header.hero h1 { font-size: 24px; }
+    header.hero img { width: 120px; }
+    h2 { font-size: 18px; }
+    .axes { grid-template-columns: 1fr; }
+    .formula { font-size: 11.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <img src="logo.png" alt="에움길">
+    <h1>내 취향대로 걷는 길, 에움길</h1>
+    <p>‘에움길’은 우회로를 뜻하는 순우리말입니다. 조금 돌아가더라도 걷는 사람이 원하는 길을 찾아 줍니다.</p>
+    <span class="where">📍 서울 광화문 중심 반경 2 km</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2><span class="no">1</span>서비스 개요</h2>
+    <p class="lead">가장 짧은 길이 늘 가장 걷고 싶은 길은 아닙니다.</p>
+    <div class="card">
+      <p>에움길은 <b>“가장 짧은 길”이 아니라 “내가 걷고 싶은 길”</b>을 추천하는 도보 경로 서비스입니다. OpenStreetMap 보행 네트워크의 길 조각마다 차량 노출·분위기·공원 접근성·가로수 밀도를 점수로 매겨 두고, 사용자의 취향을 가중치로 바꿔 경로를 계산합니다.</p>
+      <p>버튼으로 목적(데이트·혼자 산책·가족 나들이·관광·빠르게 이동)을 고르거나, <span class="tag ai">AI</span> 입력창에 <i>“조용하고 카페 많은 길로 천천히”</i>처럼 적기만 해도 됩니다. 걷고 나서 남긴 구간 리뷰는 곧바로 다음 사람의 경로에 반영됩니다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">2</span>핵심 기술</h2>
+    <p class="lead">경로 하나를 고르기까지 네 가지 장치가 함께 움직입니다.</p>
+
+    <div class="card">
+      <h3><span class="e">🧭</span>4축 가중치 시스템</h3>
+      <p>길 조각마다 네 가지 점수를 0~1 페널티로 정규화하고, 사용자가 고른 강도(0~4)를 곱해 비용에 더합니다.</p>
+      <div class="axes" style="margin-top:12px">
+        <div class="axis" style="--c:#dc2626"><b>🚗 차량 노출도</b><small>도로 등급으로 산출 (보행로 0 → 대로 4). 조용한 길을 원하면 이 축을 올립니다.</small><div class="bar"><i style="width:82%"></i></div></div>
+        <div class="axis" style="--c:#7c3aed"><b>✨ 분위기</b><small>카페·베이커리·갤러리 밀도와 생활도로 여부. 리뷰 점수가 쌓이면 함께 조정됩니다.</small><div class="bar"><i style="width:68%"></i></div></div>
+        <div class="axis" style="--c:#16a34a"><b>🌳 공원 접근성</b><small>가장 가까운 공원까지의 거리(300 m에서 포화). 쉬어갈 곳이 있는 길을 선호할 때 씁니다.</small><div class="bar"><i style="width:74%"></i></div></div>
+        <div class="axis" style="--c:#65a30d"><b>🌿 가로수 밀도</b><small>서울시 가로수 위치 데이터 기준 100 m당 그루 수(15그루에서 포화). 그늘 있는 길을 찾습니다.</small><div class="bar"><i style="width:60%"></i></div></div>
+      </div>
+      <p class="note">비용 = 길이 × (1 + 회피 페널티) + 길이 × Σ(가중치 × 축 페널티) — 모든 항이 0 이상이라 최단 경로 알고리즘을 그대로 쓸 수 있습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="e">⏳</span>시간 감쇠</h3>
+      <p>리뷰는 남긴 시점에서 멀어질수록 영향력이 줄어듭니다. <b>반감기 30일</b>로, 오늘 남긴 리뷰가 100 %라면 30일 뒤에는 50 %, 60일 뒤에는 25 %만 반영됩니다.</p>
+      <div class="formula" style="margin-top:10px">가중치 = 0.5 ^ (경과일 / 30)</div>
+      <p class="note">공사 중이던 골목이 정리되거나 밤길이 밝아지는 것처럼 길은 계속 변합니다. 점수·태그·사진 분석·위험 신고 모두 같은 규칙으로 옅어져 최신 현황이 우선 반영됩니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="e">🛤️</span>우회 허용 범위(β)로 만드는 3가지 후보</h3>
+      <p>최단 경로 길이의 몇 배까지 돌아가도 좋은지를 예산으로 정하고, 그 예산 안에서 취향 반영을 최대로 끌어올린 경로를 찾습니다.</p>
+      <div class="betas" style="margin-top:12px">
+        <div class="beta" style="--c:#4A90D9"><b>β 1.0 · 최단</b><small>가장 짧은 길 그대로</small><span class="n">기준</span></div>
+        <div class="beta" style="--c:#50C878"><b>β 1.15 · 균형</b><small>15 %까지 돌아가며 취향 반영</small><span class="n">+15 %</span></div>
+        <div class="beta" style="--c:#FF8C69"><b>β 1.3 · 맞춤</b><small>30 %까지 돌아가 취향을 최대로</small><span class="n">+30 %</span></div>
+      </div>
+      <p class="note">예: 3.1 km 구간에서 +3분을 더 걸어 차량 노출을 80 % 줄인 경로를 찾아냅니다. 세 후보가 같은 길로 수렴하면 중복은 자동으로 정리됩니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="e">⚙️</span>Dijkstra 기반 경로 탐색</h3>
+      <p><b>networkx + osmnx</b>로 광화문 반경 2 km 보행 네트워크를 그래프로 불러와, 위 비용을 간선 가중치로 삼아 Dijkstra 최단 경로를 계산합니다. 우회 예산을 만족하는 취향 강도(λ)는 비용이 같아지는 지점을 좁혀 가며 찾습니다.</p>
+      <p class="note">계단 제외(유모차·휠체어), 최대 6곳까지의 경유지 방문 순서 최적화, 같은 길 되돌아오기 억제도 같은 그래프 위에서 처리합니다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="no">3</span>AI 활용</h2>
+    <p class="lead">Anthropic Claude(claude-opus-5)를 서비스 곳곳에 씁니다.</p>
+
+    <div class="card">
+      <h3><span class="e">💬</span>자연어 취향 → 가중치 변환 <span class="tag ai">Structured Outputs</span></h3>
+      <p>“조용하고 카페 많은 길로 천천히”를 네 축의 가중치와 계단 제외 여부, 피하고 싶은 신고 태그, 출발·도착·경유지 지명으로 바꿉니다. JSON 스키마로 응답 형식을 고정하고 서버가 값 범위를 다시 검증해, 해석 결과를 그대로 경로 탐색에 넣습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="e">📝</span>경로 추천 이유 자동 생성</h3>
+      <p>후보 경로의 실제 수치(추가 소요 시간, 차량 노출 감소율, 우회한 신고 구간 등)만 근거로 한 문장씩 설명을 만듭니다. 지어낸 정보가 섞이지 않도록 사용할 수치를 미리 정해 전달합니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="e">🏷️</span>리뷰 글에서 태그·축 신호 추출</h3>
+      <p>“밤엔 가로등이 적어 어두워요” 같은 문장에서 어느 축이 어느 방향으로 움직여야 하는지(−1~1)와 해당하는 태그를 뽑아냅니다. 기존 네 축으로 담기 어려운 표현은 <b>새 축 후보</b>로 모으고, 비슷한 말끼리(젊은층 ≈ 트렌디) 자동으로 묶습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="e">📷</span>사진 분석과 장소 신뢰도 검증 <span class="tag ai">Vision</span></h3>
+      <p>리뷰 사진에서 포장 상태·가로수·경사처럼 <b>잘 변하지 않는 특징만</b> 태그로 남기고, 그날의 차량·혼잡·날씨 같은 일시적인 상황은 분리해 분위기 참고로만 씁니다.</p>
+      <p>또한 <b>이 사진을 믿어도 되는지</b>를 함께 판단합니다. 같은 구간에 먼저 올라온 사진과 비교해 실제로 그 장소에서 찍혔는지 확인하고, 어긋난 사진이 반복되는 사용자는 사진이 경로에 미치는 영향을 점차 줄입니다.</p>
+      <p class="note">사진 분석 결과는 사용자가 확인한 뒤에만 반영되며, 신뢰도가 낮으면 기록만 남고 경로 점수에는 쓰이지 않습니다.</p>
+    </div>
+  </section>
+
+  <div class="cta">
+    <h2 style="margin-bottom:10px">지금 걸어볼까요?</h2>
+    <p>출발지와 도착지만 정하면 3가지 경로를 바로 비교할 수 있습니다.</p>
+    <a class="btn" href="https://walk-route-production.up.railway.app">🚶 에움길 서비스 열기 →</a>
+    <div class="sub">
+      <a href="https://walk-route-production.up.railway.app/ranking">🏆 인기 경로</a>
+      <a href="https://github.com/yklee-l/walk-route">💻 GitHub</a>
+    </div>
+  </div>
+
+  <footer>
+    데이터 · OpenStreetMap contributors · 서울시 가로수 위치 정보 · VWorld(국토교통부) · 카카오 로컬 API<br>
+    에움길 (walk-route) — 취향 기반 도보 경로 추천 서비스
+  </footer>
+
+</div>
+</body>
+</html>

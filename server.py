@@ -1430,6 +1430,9 @@ class RouteHandler(SimpleHTTPRequestHandler):
         elif url.path == "/review":
             self.path = "/index.html"  # the page's phone review form lives at /review?edge_id=&route_id= (history API)
             super().do_GET()
+        elif url.path == "/about":
+            self.path = "/about.html"  # 서비스 소개 페이지
+            super().do_GET()
         elif url.path == "/admin":
             self.path = "/admin.html"
             super().do_GET()
