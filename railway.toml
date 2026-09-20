@@ -15,6 +15,6 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 numReplicas = 1                   # the graph lives in memory and reviews are files: a second replica would diverge
 
-[env]
-HOST = "0.0.0.0"
-DATA_DIR = "/data"                # mount a Railway volume here to keep reviews and photos across deploys
+# Variables (ANTHROPIC_API_KEY, ADMIN_PASSWORD, KAKAO_API_KEY, VWORLD_API_KEY, ...) are set in the Railway
+# dashboard - a [env] block here is not applied. The data directory needs no variable: server.py falls back to
+# RAILWAY_VOLUME_MOUNT_PATH, so attaching a volume is enough (set DATA_DIR only to override it).

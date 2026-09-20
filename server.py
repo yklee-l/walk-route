@@ -31,7 +31,9 @@ from waypoints import DEFAULT_REVISIT_PENALTY, MAX_WAYPOINTS, WaypointError, hav
 WEB_DIR = Path(__file__).parent / "web"
 # Everything the server writes lives under DATA_DIR. On a host with an ephemeral filesystem (Railway, Render, ...)
 # point it at a mounted volume, otherwise reviews and photos are lost on the next deploy.
-DATA_DIR = Path(os.environ.get("DATA_DIR") or "osmnx_outputs")
+# Railway (and similar) export the mount path of an attached volume; use it unless DATA_DIR says otherwise, so a
+# volume added in the dashboard is picked up without editing variables.
+DATA_DIR = Path(os.environ.get("DATA_DIR") or os.environ.get("RAILWAY_VOLUME_MOUNT_PATH") or "osmnx_outputs")
 REVIEWS_PATH = DATA_DIR / "reviews.json"
 PROFILES_PATH = DATA_DIR / "profiles.json"  # {nickname: {mode, purpose, subs, avoid, ai, weights, avoid_steps, updated}}
 VISITS_PATH = DATA_DIR / "visits.json"  # {date: {page, routes, users: [...]}} for the admin stats
