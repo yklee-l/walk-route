@@ -3083,7 +3083,7 @@ $("loginform").addEventListener("submit", e => {
     if (changing && name === previous) { if (current) findRoutes(); }
     else { try { localStorage.removeItem(DEFAULT_KEY); sessionStorage.removeItem(SESSION_KEY); } catch {} enter(); }
   };
-  storage.get(NOTICE_KEY) ? go() : showNotice(go);
+  noticeSeen(name) ? go() : showNotice(go, name);
 });
 $("changeuser").addEventListener("click", () => { $("acctmenu").classList.remove("show"); showLogin(true); });
 // Returning visitors: a one-time override for this tab wins, then the saved default; otherwise onboard.
@@ -3107,17 +3107,26 @@ async function enter() {
   else startOnboarding("first");
 }
 // ---------- 시연용 데이터 안내: 동의해야 서비스로 넘어감 (한 번만, NOTICE_KEY에 기록) ----------
-const NOTICE_KEY = "walkroute.notice.v1";
-let noticeThen = null;
-function showNotice(then) {
-  noticeThen = then || null;
+// 동의는 닉네임별로 기록합니다: 다른 계정으로 로그인하면 그 계정에도 한 번 안내가 뜹니다.
+const NOTICE_KEY = "walkroute.notice.v2";
+const noticeSeen = name => { try { return JSON.parse(localStorage.getItem(NOTICE_KEY) || "[]").includes(name || ""); } catch { return false; } };
+function markNoticeSeen(name) {
+  try {
+    const seen = JSON.parse(localStorage.getItem(NOTICE_KEY) || "[]");
+    if (!seen.includes(name || "")) seen.push(name || "");
+    localStorage.setItem(NOTICE_KEY, JSON.stringify(seen.slice(-50)));
+  } catch {}
+}
+let noticeThen = null, noticeFor = "";
+function showNotice(then, name) {
+  noticeThen = then || null; noticeFor = name || "";
   $("noticechk").checked = false; $("noticego").disabled = true;
   $("notice").classList.add("show");
 }
 $("noticechk").addEventListener("change", e => ($("noticego").disabled = !e.target.checked));
 $("noticego").addEventListener("click", () => {
   if (!$("noticechk").checked) return;
-  storage.set(NOTICE_KEY, "1");
+  markNoticeSeen(noticeFor);
   $("notice").classList.remove("show");
   const then = noticeThen; noticeThen = null; then?.();
 });
@@ -3196,7 +3205,7 @@ $("sm-intro").addEventListener("click", () => { closeSideMenu(); showIntro(); })
   const start = () => {
     if (!saved) return showLogin();                      // 로그인 화면 → 시작하기 → 안내 팝업
     setUser(saved);
-    storage.get(NOTICE_KEY) ? enter() : showNotice(enter);  // 이미 로그인된 재방문자도 한 번은 안내
+    noticeSeen(saved) ? enter() : showNotice(enter, saved);  // 이미 로그인된 재방문자도 그 닉네임으로 한 번은 안내
   };
   if (storage.get(INTRO_KEY)) start(); else showIntro(start);  // first visit: the intro slides come before the login
   if (location.pathname === "/ranking") setTimeout(openRanking, 300);
