@@ -2117,11 +2117,15 @@ class RouteHandler(SimpleHTTPRequestHandler):
 
     # ---- admin (/admin, /api/admin/*): ADMIN_PASSWORD in .env, token in X-Admin-Token ----
     def admin_denied(self) -> tuple[dict[str, object], HTTPStatus] | None:
+        """None when this request may use the admin API: the page's X-Admin-Token, or Bearer <ADMIN_PASSWORD> for scripts."""
         if self.admin_token_value is None:
             return {"error": "관리자 기능이 꺼져 있습니다. .env에 ADMIN_PASSWORD를 넣고 서버를 재시작하세요."}, HTTPStatus.FORBIDDEN
-        if self.headers.get("X-Admin-Token") != self.admin_token_value:
-            return {"error": "관리자 로그인이 필요합니다."}, HTTPStatus.UNAUTHORIZED
-        return None
+        if self.headers.get("X-Admin-Token") == self.admin_token_value:
+            return None
+        auth = self.headers.get("Authorization", "")
+        if auth.startswith("Bearer ") and admin_token(auth[len("Bearer "):].strip()) == self.admin_token_value:
+            return None
+        return {"error": "관리자 로그인이 필요합니다."}, HTTPStatus.UNAUTHORIZED
 
     def admin_get(self, action: str, query: dict[str, str]) -> None:
         if action == "status":
@@ -2223,6 +2227,8 @@ class RouteHandler(SimpleHTTPRequestHandler):
                 self.reviews.rebuild()
                 self.reviews.save()
                 return self.send_json({"ok": True, "generated": len(reviews), "reviews_total": len(self.reviews.reviews)})
+            if action in ("import-data", "data/import"):
+                return self.send_json(*self.import_data(body))
             if action == "data/reset":
                 archived = self.reviews.clear()
                 return self.send_json({"ok": True, "archived": str(archived) if archived else None})
@@ -2244,6 +2250,73 @@ class RouteHandler(SimpleHTTPRequestHandler):
             "length_m": round(sum(self.graph[u][v][k]["length"] for u, v, k in edges), 1),
             "coordinates": [[round(lon, 6), round(lat, 6)] for lon, lat in route_coordinates(self.graph, edges)],
         }
+
+    def import_data(self, body: dict[str, object]) -> tuple[dict[str, object], HTTPStatus]:
+        """POST /api/admin/import-data: load reviews / profiles / visits (and optionally photo files) from a local copy.
+
+        body: {"reviews": [...] | {"reviews": [...], "negatives": [...], ...},
+               "profiles": {nickname: {...}}, "visits": {date: {...}} | [{"date": ..., ...}],
+               "photos": {"<dir>/<file>.jpg": "<base64>"},        # optional, so imported reviews keep their images
+               "mode": "replace" | "merge"}                        # reviews only; default replace
+        Files under DATA_DIR are written and the running server is refreshed, so no restart is needed.
+        """
+        mode = str(body.get("mode", "replace"))
+        if mode not in ("replace", "merge"):
+            return {"error": "mode must be replace or merge"}, HTTPStatus.BAD_REQUEST
+        result: dict[str, object] = {"ok": True, "mode": mode}
+        store = self.reviews
+        payload = body.get("reviews")
+        if payload is not None:
+            data = payload if isinstance(payload, dict) else {"reviews": payload}
+            if not isinstance(data.get("reviews", []), list):
+                return {"error": "reviews must be a list, or the whole reviews.json object"}, HTTPStatus.BAD_REQUEST
+            incoming = [dict(r, id=r.get("id") or entry_id(r)) for r in data.get("reviews", [])]
+            negatives = [dict(n, id=n.get("id") or entry_id(n)) for n in data.get("negatives", [])]
+            if mode == "merge":
+                known = {r.get("id") for r in store.reviews}
+                incoming = store.reviews + [r for r in incoming if r["id"] not in known]
+                known_n = {n.get("id") for n in store.negatives}
+                negatives = store.negatives + [n for n in negatives if n["id"] not in known_n]
+                store.candidates = {**store.candidates, **{str(c["keyword"]): c for c in data.get("new_axis_candidates", []) if c.get("keyword")}}
+                store.danger_manual = {**store.danger_manual, **{str(k): v for k, v in (data.get("danger_manual") or {}).items()}}
+            else:
+                store.candidates = {str(c["keyword"]): c for c in data.get("new_axis_candidates", []) if c.get("keyword")}
+                store.danger_manual = {str(k): v for k, v in (data.get("danger_manual") or {}).items()}
+            store.reviews, store.negatives = incoming, negatives
+            store.rebuild()  # replay onto a clean graph so scores match the imported history
+            store.save()
+            result["reviews"] = len(store.reviews)
+            result["negatives"] = len(store.negatives)
+            result["candidates"] = len(store.candidates)
+        profiles = body.get("profiles")
+        if isinstance(profiles, dict):
+            self.profiles.profiles = {**self.profiles.profiles, **profiles} if mode == "merge" else dict(profiles)
+            self.profiles.path.parent.mkdir(parents=True, exist_ok=True)
+            self.profiles.path.write_text(json.dumps(self.profiles.profiles, ensure_ascii=False, indent=1), encoding="utf-8")
+            result["profiles"] = len(self.profiles.profiles)
+        visits = body.get("visits")
+        if visits is not None:
+            days = visits if isinstance(visits, dict) else {str(v.get("date")): {k: v[k] for k in ("page", "routes", "users") if k in v} for v in visits if isinstance(v, dict) and v.get("date")}
+            self.visits.days = {**self.visits.days, **days} if mode == "merge" else dict(days)
+            self.visits.dirty = True
+            self.visits.flush()
+            result["visits"] = len(self.visits.days)
+        photos = body.get("photos")
+        if isinstance(photos, dict):
+            saved = 0
+            for relative, blob in photos.items():
+                target = (PHOTOS_DIR / str(relative)).resolve()
+                if PHOTOS_DIR.resolve() not in target.parents or target.suffix.lower() not in (".jpg", ".jpeg", ".png", ".webp"):
+                    continue  # never write outside the photo directory
+                target.parent.mkdir(parents=True, exist_ok=True)
+                raw = str(blob)
+                target.write_bytes(base64.b64decode(raw.split(",", 1)[1] if raw.startswith("data:") else raw, validate=False))
+                saved += 1
+            result["photos"] = saved
+        RouteHandler.route_cache.clear()
+        RouteHandler.ranking_cache.clear()
+        print(f"[import] {result}", flush=True)
+        return result, HTTPStatus.OK
 
     def segment_label(self, edge_id: str) -> str:
         """'세종대로 · 120 m' for an edge_id, for the admin tables."""
