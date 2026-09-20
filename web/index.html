@@ -404,6 +404,18 @@
   .mockreview-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
   .mockreview-tags span { background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 11.5px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.08); }
   .mockreview-btn { margin-top: 2px; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 8px 20px; font-size: 12.5px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  #notice { position: fixed; inset: 0; z-index: 3200; background: rgba(24,24,27,.5); display: none; align-items: center; justify-content: center; padding: 20px; }
+  #notice.show { display: flex; }
+  #notice .box { width: 100%; max-width: 420px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 20px; box-shadow: var(--shadow); padding: 24px 22px 20px; text-align: center; animation: rise .32s cubic-bezier(.2,.8,.2,1) both; }
+  #notice .ico { font-size: 40px; line-height: 1; margin-bottom: 8px; }
+  #notice h1 { font-size: 18px; margin: 0 0 10px; }
+  #notice p.big { font-size: 14px; line-height: 1.6; color: #3f3f46; margin: 0 0 14px; word-break: keep-all; }
+  #notice ul { text-align: left; margin: 0 0 16px; padding: 12px 14px 12px 30px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; color: #7c2d12; font-size: 13px; line-height: 1.6; }
+  #notice li + li { margin-top: 6px; }
+  #notice .agree { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 14px; user-select: none; }
+  #notice .agree input { width: 18px; height: 18px; accent-color: var(--accent); }
+  #notice .primary { width: 100%; padding: 13px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  #notice .primary:disabled { background: var(--track); color: var(--faint); cursor: not-allowed; }
   #lock { position: fixed; inset: 0; z-index: 3000; background: var(--bg); display: none; align-items: center; justify-content: center; padding: 24px; }
   #lock .privacy { margin: 6px 0 12px; font-size: 12.5px; color: var(--muted); }
   /* 온보딩·시작 화면 상단 로고 (web/logo.png) */
@@ -913,6 +925,22 @@ AI가 알아서 경로를 추천해줘요</p>
     </section>
   </div>
   <div class="foot"><div class="dots" id="introdots"></div><div class="nav"><button type="button" id="introprev" hidden>← 이전</button><button type="button" id="intronext">다음 →</button><button type="button" id="introgo" class="go" hidden>시작하기 →</button></div></div>
+</div>
+<!-- 시연용 데이터 안내: 닉네임 입력 후(또는 첫 진입 시) 한 번 동의를 받고 진행 -->
+<div id="notice" role="dialog" aria-modal="true" aria-labelledby="noticettl">
+  <div class="box">
+    <div class="ico">⚠️</div>
+    <h1 id="noticettl">시작하기 전에 꼭 확인해 주세요</h1>
+    <p class="big">지금 보시는 <b>리뷰·사진·평점·위험 구간 표시는 모두 예시로 만든 가상의 데이터</b>입니다. 실제 이용자가 남긴 기록이 아닙니다.</p>
+    <ul>
+      <li>실제 길의 상태·안전과 <b>무관</b>합니다. 이 안내만 믿고 이동하지 말아 주세요.</li>
+      <li>위험 구간으로 표시된 곳도 예시일 뿐, 그 장소가 실제로 위험하다는 뜻이 아닙니다.</li>
+      <li>경로 찾기·리뷰 작성 등 기능은 자유롭게 사용해 보셔도 됩니다.</li>
+      <li>정식 서비스에서는 실제 이용자의 기록으로 대체될 예정입니다.</li>
+    </ul>
+    <label class="agree"><input type="checkbox" id="noticechk"><span>위 내용을 확인했습니다</span></label>
+    <button class="primary" id="noticego" type="button" disabled>확인했어요, 시작하기</button>
+  </div>
 </div>
 <div id="lock">
   <form id="loginform">
@@ -3051,8 +3079,11 @@ $("loginform").addEventListener("submit", e => {
   const previous = userId;
   setUser(name);
   $("lock").classList.remove("show");
-  if (changing && name === previous) { if (current) findRoutes(); }
-  else { try { localStorage.removeItem(DEFAULT_KEY); sessionStorage.removeItem(SESSION_KEY); } catch {} enter(); }
+  const go = () => {
+    if (changing && name === previous) { if (current) findRoutes(); }
+    else { try { localStorage.removeItem(DEFAULT_KEY); sessionStorage.removeItem(SESSION_KEY); } catch {} enter(); }
+  };
+  storage.get(NOTICE_KEY) ? go() : showNotice(go);
 });
 $("changeuser").addEventListener("click", () => { $("acctmenu").classList.remove("show"); showLogin(true); });
 // Returning visitors: a one-time override for this tab wins, then the saved default; otherwise onboard.
@@ -3075,6 +3106,23 @@ async function enter() {
   if (sessionPrefs || defaultPrefs) { usePrefs(sessionPrefs || defaultPrefs, sessionPrefs ? "once" : "default"); applyState(); peekSheet(); }
   else startOnboarding("first");
 }
+// ---------- 시연용 데이터 안내: 동의해야 서비스로 넘어감 (한 번만, NOTICE_KEY에 기록) ----------
+const NOTICE_KEY = "walkroute.notice.v1";
+let noticeThen = null;
+function showNotice(then) {
+  noticeThen = then || null;
+  $("noticechk").checked = false; $("noticego").disabled = true;
+  $("notice").classList.add("show");
+}
+$("noticechk").addEventListener("change", e => ($("noticego").disabled = !e.target.checked));
+$("noticego").addEventListener("click", () => {
+  if (!$("noticechk").checked) return;
+  storage.set(NOTICE_KEY, "1");
+  $("notice").classList.remove("show");
+  const then = noticeThen; noticeThen = null; then?.();
+});
+// 동의 전에는 닫을 수 없게: 바깥 클릭·Esc 모두 무시 (별도 핸들러를 두지 않음)
+
 // ---------- app intro: 6 slides, swipe / drag / arrow keys; shown once (INTRO_KEY) and from the account menu ----------
 const INTRO_KEY = "walkroute.intro.v1";
 const intro = { n: 0, count: document.querySelectorAll("#intro .slide").length, done: null };
@@ -3145,7 +3193,11 @@ $("sm-intro").addEventListener("click", () => { closeSideMenu(); showIntro(); })
   syncAiUi();
   setGps(storage.get(GPS_KEY) === "1");  // default off
   const saved = (storage.get(USER_KEY) || "").trim();
-  const start = () => { if (saved) { setUser(saved); enter(); } else showLogin(); };
+  const start = () => {
+    if (!saved) return showLogin();                      // 로그인 화면 → 시작하기 → 안내 팝업
+    setUser(saved);
+    storage.get(NOTICE_KEY) ? enter() : showNotice(enter);  // 이미 로그인된 재방문자도 한 번은 안내
+  };
   if (storage.get(INTRO_KEY)) start(); else showIntro(start);  // first visit: the intro slides come before the login
   if (location.pathname === "/ranking") setTimeout(openRanking, 300);
   if (location.pathname === "/review") history.replaceState({}, "", "/");  // a reloaded review page has no route to attach to
