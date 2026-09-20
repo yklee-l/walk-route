@@ -3079,11 +3079,8 @@ $("loginform").addEventListener("submit", e => {
   const previous = userId;
   setUser(name);
   $("lock").classList.remove("show");
-  const go = () => {
-    if (changing && name === previous) { if (current) findRoutes(); }
-    else { try { localStorage.removeItem(DEFAULT_KEY); sessionStorage.removeItem(SESSION_KEY); } catch {} enter(); }
-  };
-  noticeSeen(name) ? go() : showNotice(go, name);
+  if (changing && name === previous) { if (current) findRoutes(); }
+  else { try { localStorage.removeItem(DEFAULT_KEY); sessionStorage.removeItem(SESSION_KEY); } catch {} enter(); }
 });
 $("changeuser").addEventListener("click", () => { $("acctmenu").classList.remove("show"); showLogin(true); });
 // Returning visitors: a one-time override for this tab wins, then the saved default; otherwise onboard.
@@ -3106,27 +3103,17 @@ async function enter() {
   if (sessionPrefs || defaultPrefs) { usePrefs(sessionPrefs || defaultPrefs, sessionPrefs ? "once" : "default"); applyState(); peekSheet(); }
   else startOnboarding("first");
 }
-// ---------- 시연용 데이터 안내: 동의해야 서비스로 넘어감 (한 번만, NOTICE_KEY에 기록) ----------
-// 동의는 닉네임별로 기록합니다: 다른 계정으로 로그인하면 그 계정에도 한 번 안내가 뜹니다.
-const NOTICE_KEY = "walkroute.notice.v2";
-const noticeSeen = name => { try { return JSON.parse(localStorage.getItem(NOTICE_KEY) || "[]").includes(name || ""); } catch { return false; } };
-function markNoticeSeen(name) {
-  try {
-    const seen = JSON.parse(localStorage.getItem(NOTICE_KEY) || "[]");
-    if (!seen.includes(name || "")) seen.push(name || "");
-    localStorage.setItem(NOTICE_KEY, JSON.stringify(seen.slice(-50)));
-  } catch {}
-}
-let noticeThen = null, noticeFor = "";
-function showNotice(then, name) {
-  noticeThen = then || null; noticeFor = name || "";
+// ---------- 시연용 데이터 안내: 접속할 때마다 표시하고, 동의해야 서비스로 넘어감 ----------
+// 접속할 때마다(새로고침 포함) 한 번씩 안내합니다 - 저장하지 않으므로 링크로 들어온 누구나 보게 됩니다.
+let noticeThen = null;
+function showNotice(then) {
+  noticeThen = then || null;
   $("noticechk").checked = false; $("noticego").disabled = true;
   $("notice").classList.add("show");
 }
 $("noticechk").addEventListener("change", e => ($("noticego").disabled = !e.target.checked));
 $("noticego").addEventListener("click", () => {
   if (!$("noticechk").checked) return;
-  markNoticeSeen(noticeFor);
   $("notice").classList.remove("show");
   const then = noticeThen; noticeThen = null; then?.();
 });
@@ -3202,12 +3189,10 @@ $("sm-intro").addEventListener("click", () => { closeSideMenu(); showIntro(); })
   syncAiUi();
   setGps(storage.get(GPS_KEY) === "1");  // default off
   const saved = (storage.get(USER_KEY) || "").trim();
-  const start = () => {
-    if (!saved) return showLogin();                      // 로그인 화면 → 시작하기 → 안내 팝업
-    setUser(saved);
-    noticeSeen(saved) ? enter() : showNotice(enter, saved);  // 이미 로그인된 재방문자도 그 닉네임으로 한 번은 안내
-  };
-  if (storage.get(INTRO_KEY)) start(); else showIntro(start);  // first visit: the intro slides come before the login
+  const start = () => { if (saved) { setUser(saved); enter(); } else showLogin(); };
+  const gate = fn => showNotice(fn);  // 접속할 때마다 시연용 데이터 안내를 먼저 보여 준다
+  // 링크로 들어오면 먼저 시연용 데이터 안내 → 동의 후 (첫 방문이면 소개 슬라이드 →) 로그인/서비스
+  gate(() => { if (storage.get(INTRO_KEY)) start(); else showIntro(start); });
   if (location.pathname === "/ranking") setTimeout(openRanking, 300);
   if (location.pathname === "/review") history.replaceState({}, "", "/");  // a reloaded review page has no route to attach to
 })();
