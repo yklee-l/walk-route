@@ -406,6 +406,10 @@
   .mockreview-btn { margin-top: 2px; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 8px 20px; font-size: 12.5px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
   #lock { position: fixed; inset: 0; z-index: 3000; background: var(--bg); display: none; align-items: center; justify-content: center; padding: 24px; }
   #lock .privacy { margin: 6px 0 12px; font-size: 12.5px; color: var(--muted); }
+  /* 온보딩·시작 화면 상단 로고 (web/logo.png) */
+  .brand { display: block; width: 120px; height: auto; margin: 0 auto 14px; object-fit: contain; }
+  #onboard .brand { margin-bottom: 10px; }
+  @media (max-width: 760px) { .brand { width: 104px; } }
   #lock .privacy small { display: block; font-size: 11.5px; margin-top: 2px; }
   #lock.show { display: flex; }
   #lock form { width: 100%; max-width: 360px; text-align: center; animation: rise .38s cubic-bezier(.2,.8,.2,1) both; }
@@ -913,7 +917,7 @@ AI가 알아서 경로를 추천해줘요</p>
 <div id="lock">
   <form id="loginform">
     <button type="button" class="xclose" id="loginclose" title="닉네임 없이 둘러보기">×</button>
-    <div style="font-size:40px">🚶</div>
+    <img class="brand" src="logo.png" alt="에움길" width="120">
     <h1>사용자명을 입력해주세요</h1>
     <p>내가 남긴 리뷰는 이후 경로 추천에 우선 반영돼요</p>
     <input id="nickname" type="text" maxlength="30" autocomplete="nickname" placeholder="닉네임">
@@ -987,6 +991,7 @@ AI가 알아서 경로를 추천해줘요</p>
     <div class="steps" id="stepsbar"></div>
     <!-- step M: how to set preferences -->
     <div class="step" id="stepM">
+      <img class="brand" src="logo.png" alt="에움길" width="120">
       <h1>취향 설정 방식을 선택해 주세요</h1>
       <p class="lead">한 번 설정해 두면 이후에는 바로 경로를 탐색합니다.</p>
       <div class="choices">
