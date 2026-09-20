@@ -23,7 +23,7 @@ import anthropic
 import networkx as nx
 
 from candidate_routes import BETAS, PROFILE, candidate_routes, candidates_geojson
-from routing import DANGER_THRESHOLD, Weights, edge_name, is_danger, load_graph, nearest_node, number, route_coordinates, without_steps
+from routing import DANGER_THRESHOLD, GRAPH_PATH, Weights, edge_name, is_danger, load_graph, nearest_node, number, route_coordinates, without_steps
 from score_gwanghwamun_edges import highway_values
 from waypoints import DEFAULT_REVISIT_PENALTY, MAX_WAYPOINTS, WaypointError, haversine_m
 
@@ -2343,6 +2343,14 @@ class RouteHandler(SimpleHTTPRequestHandler):
         bad.update(str(n["reason"]) for n in self.reviews.negatives)
         return {
             "decay_half_life_days": DECAY_HALF_LIFE_DAYS,
+            # Where this instance keeps its data - on a PaaS this tells you whether a volume is really mounted.
+            "storage": {
+                "data_dir": str(DATA_DIR.resolve()), "graph": str(GRAPH_PATH),
+                "files": {name: (path.stat().st_size if path.exists() else None) for name, path in
+                          (("reviews.json", REVIEWS_PATH), ("profiles.json", PROFILES_PATH), ("visits.json", VISITS_PATH))},
+                "photos": sum(1 for _ in PHOTOS_DIR.rglob("*.*")) if PHOTOS_DIR.exists() else 0,
+                "writable": os.access(DATA_DIR, os.W_OK),
+            },
             "totals": {"reviews": len(self.reviews.reviews), "segment_reviews": len(reviews), "route_ratings": len(self.reviews.reviews) - len(reviews), "reports": len(self.reviews.negatives),
                        "users": len(by_user), "candidates_pending": sum(1 for c in self.reviews.candidates.values() if c.get("status") == "pending"),
                        "danger_zones": len(self.danger_zones((37.5720, 126.9769), 1e9)), "ai_analyzed": sum(1 for r in reviews if r.get("ai"))},
