@@ -15,7 +15,7 @@ from waypoints import (
 )
 
 
-BETAS = (1.0, 1.15, 1.3)  # shortest / balanced / calm; see validate_candidate_routes.py for why 1.0 is in
+BETAS = (1.0, 1.15, 1.3)  # shortest / balanced / calm; see scripts/validate_candidate_routes.py for why 1.0 is in
 LABELS = {1.0: "최단", 1.15: "균형", 1.3: "쾌적"}
 PROFILE = Weights(w_vehicle=1.0)  # direction of the penalty vector; the search scales it by lambda
 W_MAX = 256.0  # at lambda=256 a residential edge costs 65x its length: effectively the min-penalty route

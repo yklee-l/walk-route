@@ -16,7 +16,7 @@ from score_gwanghwamun_edges import highway_values, vehicle_exposure_score
 GRAPH_PATH = Path(os.environ.get("WALKROUTE_GRAPH") or "osmnx_outputs/gwanghwamun_walk_2km_scored.graphml")
 COST_KEY = "_route_cost"
 # Normalization caps for the penalty axes (both map to [0, 1]).
-# tree_count_20m counts Seoul street trees within 20 m of the edge line (rescore_trees_seoul.py),
+# tree_count_20m counts Seoul street trees within 20 m of the edge line (scripts/rescore_trees_seoul.py),
 # so it scales with edge length; the axis uses density instead. 15 trees / 100 m is roughly one
 # fully planted side at the usual 6-8 m spacing (graph p75 = 14, p90 = 34 per 100 m).
 TREE_PER_100M_CAP = 15.0
