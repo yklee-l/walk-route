@@ -15,3 +15,8 @@ osmnx_outputs/reviews.*.bak
 data/
 osmnx_outputs/reviews.jsonl*
 osmnx_outputs/visits.json
+
+# local presentation material / scratch copies, not part of the project
+for_demo/
+KakaoTalk_*.png
+/index.html
