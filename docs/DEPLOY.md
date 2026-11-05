@@ -25,7 +25,7 @@
 
 ```bash
 git add osmnx_outputs/gwanghwamun_walk_2km_scored.graphml   # 15.8 MB
-git add railway.toml requirements-server.txt DEPLOY.md .gitignore server.py routing.py
+git add railway.toml requirements-server.txt docs/DEPLOY.md .gitignore server.py routing.py
 git commit -m "Railway 배포 설정"
 git push
 ```

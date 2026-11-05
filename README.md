@@ -66,10 +66,10 @@ The segment scores are rule-based, computed from map data; no machine-learned sc
 │   ├── map_median_w4_route_pair.py, demo_gyeongbokgung_myeongdong.py   # analysis maps
 │   └── validate_candidate_routes.py, validate_waypoints.py        # checks for the routing logic
 ├── osmnx_outputs/            # scored graph used by the server + analysis outputs (CSV / HTML maps)
-├── requirements-server.txt   # runtime dependencies (server only)
-├── requirements.txt          # dependencies for the scripts
-├── railway.toml              # Railway deployment config
-└── DEPLOY.md                 # deployment guide (Korean)
+├── docs/                     # deployment guide, design guide, feature and AI-usage documents (Korean)
+├── requirements-server.txt   # dependencies for the Railway build
+├── requirements.txt          # dependencies for local runs (server and scripts)
+└── railway.toml              # Railway deployment config
 ```
 
 ## Running locally
@@ -77,7 +77,7 @@ The segment scores are rule-based, computed from map data; no machine-learned sc
 Tested with Python 3.12.
 
 ```bash
-pip install -r requirements-server.txt
+pip install -r requirements.txt
 python server.py              # → http://127.0.0.1:8000
 ```
 
@@ -94,22 +94,15 @@ Optional features read keys from a `.env` file in the repository root, or from e
 
 `python server.py --no-api` turns the Claude features off.
 
-**Scripts.** Install `requirements.txt` and run the scripts as modules from the repository root, because they import the root modules:
+**Scripts.** Run the scripts as modules from the repository root, because they import the root modules:
 
 ```bash
-pip install -r requirements.txt
 python -m scripts.validate_candidate_routes
 ```
 
 The street-tree script expects the Seoul street-tree CSV under `data/`, which is not included in the repository.
 
-**Deployment.** The service is deployed on Railway. See [DEPLOY.md](DEPLOY.md).
-
-## Team and my role
-
-This is a four-person team project from the Wanted AI Championship 2026 hackathon.
-
-**My role:** [내가 채울 부분]
+**Deployment.** The service ran on Railway and is not currently live. The configuration is kept in `railway.toml`, with a guide in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ---
 
